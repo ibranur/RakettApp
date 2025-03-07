@@ -1,5 +1,5 @@
 package no.uio.ifi.in2000.team6.rakett_app
-//ludvig test git
+//ludvig test git yo
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
