@@ -1,0 +1,21 @@
+package no.uio.ifi.in2000.team6.rakett_app.model
+
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.android.Android
+import io.ktor.client.plugins.DefaultRequest
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.header
+import io.ktor.http.HttpHeaders
+import io.ktor.serialization.gson.gson
+
+object APIClient {
+    val USER_AGENT  ="https://github.uio.no/IN2000-V25/team-6"
+    val client = HttpClient(Android) {
+        install(ContentNegotiation){
+            gson()
+        }
+        install(DefaultRequest) {
+            header(HttpHeaders.UserAgent, USER_AGENT)
+        }
+    }
+}
