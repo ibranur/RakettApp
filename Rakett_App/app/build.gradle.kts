@@ -64,6 +64,8 @@ dependencies {
     //ktor
     val ktorVersion = "3.0.3"
     implementation("io.ktor:ktor-client-core:$ktorVersion") //Kjernefunksjonaliteten
+    implementation("io.ktor:ktor-serialization-gson:$ktorVersion")
+    implementation("io.ktor:ktor-client-android:$ktorVersion")
 //    implementation("io.ktor:ktor-client-cio:$ktorVersion") //engine. kan velges istedetfor okhttp
     implementation("io.ktor:ktor-client-okhttp:$ktorVersion") // engine
 //    implementation("ch.qos.logback:logback-classic:$logbackVersion") //logging. var anbefalt på ktor nettsiden tror jeg.
