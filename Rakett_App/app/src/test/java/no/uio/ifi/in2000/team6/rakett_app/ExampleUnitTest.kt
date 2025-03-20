@@ -1,9 +1,8 @@
 package no.uio.ifi.in2000.team6.rakett_app
 
-import android.util.Log
 import kotlinx.coroutines.runBlocking
 import no.uio.ifi.in2000.team6.rakett_app.data.LocationForecastDatasource
-import no.uio.ifi.in2000.team6.rakett_app.data.LocationForecastRepository
+import no.uio.ifi.in2000.team6.rakett_app.data.repository.LocationForecastRepository
 import org.junit.Test
 
 import org.junit.Assert.*

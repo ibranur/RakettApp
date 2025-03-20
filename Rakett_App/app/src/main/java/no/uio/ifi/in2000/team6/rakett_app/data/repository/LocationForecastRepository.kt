@@ -1,5 +1,6 @@
-package no.uio.ifi.in2000.team6.rakett_app.data
+package no.uio.ifi.in2000.team6.rakett_app.data.repository
 
+import no.uio.ifi.in2000.team6.rakett_app.data.LocationForecastDatasource
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecastCompact.Details
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecastCompact.Forecast
 
