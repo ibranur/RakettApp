@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    kotlin("plugin.serialization") version "2.1.10"
 }
 
 android {
@@ -39,8 +40,8 @@ android {
     }
 }
 
-dependencies {
 
+dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -49,6 +50,9 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+//    implementation(libs.androidx.storage)
+//    implementation(libs.androidx.runtime.livedata)
+//    implementation(libs.androidx.navigation.compose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -56,4 +60,18 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    //ktor
+    val ktorVersion = "3.0.3"
+    implementation("io.ktor:ktor-client-core:$ktorVersion") //Kjernefunksjonaliteten
+//    implementation("io.ktor:ktor-client-cio:$ktorVersion") //engine. kan velges istedetfor okhttp
+    implementation("io.ktor:ktor-client-okhttp:$ktorVersion") // engine
+//    implementation("ch.qos.logback:logback-classic:$logbackVersion") //logging. var anbefalt på ktor nettsiden tror jeg.
+    implementation("io.ktor:ktor-client-logging:$ktorVersion") //  logging
+    implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion") // ContentNegotiation-plugin
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion") // JSON-støtte
+
+    //image loading with coil
+//    implementation(libs.coil.compose)
+//    implementation(libs.coil.network.okhttp)
 }
