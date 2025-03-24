@@ -1,3 +1,6 @@
+import org.gradle.internal.impldep.bsh.commands.dir
+import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.include
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -72,6 +75,7 @@ dependencies {
     implementation("io.ktor:ktor-client-logging:$ktorVersion") //  logging
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion") // ContentNegotiation-plugin
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion") // JSON-støtte
+
 
     //image loading with coil
 //    implementation(libs.coil.compose)
