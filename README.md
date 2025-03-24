@@ -7,3 +7,7 @@ hei hilsen mahad
 hei hilsen sebastian
 
 test!
+
+nå skriver jeg i dev branch
+
+halla
