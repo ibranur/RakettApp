@@ -1,8 +1,11 @@
 package no.uio.ifi.in2000.team6.rakett_app
 
+import android.util.Log
 import kotlinx.coroutines.runBlocking
+import no.uio.ifi.in2000.team6.rakett_app.data.GribDataSource
 import no.uio.ifi.in2000.team6.rakett_app.data.LocationForecastDatasource
-import no.uio.ifi.in2000.team6.rakett_app.data.repository.LocationForecastRepository
+import no.uio.ifi.in2000.team6.rakett_app.data.LocationForecastRepository
+import no.uio.ifi.in2000.team6.rakett_app.model.grib.Grib
 import org.junit.Test
 
 import org.junit.Assert.*
@@ -33,6 +36,19 @@ class ExampleUnitTest {
 
 //        Log.e("TAG",output)
        println(output)
+    }
+
+    @Test
+    fun gribDSTest() {
+        val ds = GribDataSource()
+        val lat = 59.9138
+        val long = 10.7522
+        var output: Grib?
+        runBlocking{output = ds.fetchGribFile(lat, long)}
+
+        println(output.toString())
+
+
     }
 
 
