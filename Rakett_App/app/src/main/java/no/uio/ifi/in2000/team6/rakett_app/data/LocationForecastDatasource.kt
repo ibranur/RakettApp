@@ -29,7 +29,6 @@ class LocationForecastDatasource {
             null
         }
 
-
         return forecast
     }
 
