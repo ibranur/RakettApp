@@ -12,8 +12,6 @@ import java.net.UnknownHostException
 
 class GribDataSource {
 
-
-
     suspend fun fetchGribFile(lat: Double, longitude: Double): Grib? {
         val url: String = "http://69.62.118.138:5000/collections/weather_forecast/position?coords=POINT%28$longitude%20$lat%29"
         //NB POINT%28$longitude%20$lat%29"  rekkefølgen er (longitude, latitude) ikke (latitude, longitude) som i locationforecast
