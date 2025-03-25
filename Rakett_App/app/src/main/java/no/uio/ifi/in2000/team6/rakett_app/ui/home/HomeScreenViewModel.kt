@@ -1,5 +1,6 @@
 package no.uio.ifi.in2000.team6.rakett_app.ui.home
 
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,6 +12,8 @@ import no.uio.ifi.in2000.team6.rakett_app.data.repository.SafetyReportRepository
 class HomeScreenViewModel(
     private val repository: SafetyReportRepository
 ) : ViewModel() {
+    private val _temperatureState = MutableStateFlow(0.0)
+    val temperatureState: StateFlow<Double> = _temperatureState.asStateFlow()
     init {
         fetchTemperature()
     }
@@ -18,7 +21,8 @@ class HomeScreenViewModel(
     private fun fetchTemperature() {
         viewModelScope.launch {
             val report = repository.getSafetyReport(59.9139, 10.7522)
-            // Her kan du legge til logging eller videre håndtering om nødvendig
+            _temperatureState.value = report.air_temperature
+
         }
     }
 }
