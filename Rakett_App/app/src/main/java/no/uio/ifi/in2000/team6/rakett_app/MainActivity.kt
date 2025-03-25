@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import no.uio.ifi.in2000.team6.rakett_app.ui.home.HomeScreen
 import no.uio.ifi.in2000.team6.rakett_app.ui.theme.Rakett_AppTheme
 
 class MainActivity : ComponentActivity() {
@@ -20,7 +21,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             Rakett_AppTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-
+                    HomeScreen(
+                        modifier = Modifier.padding(innerPadding)                    )
                 }
             }
         }
