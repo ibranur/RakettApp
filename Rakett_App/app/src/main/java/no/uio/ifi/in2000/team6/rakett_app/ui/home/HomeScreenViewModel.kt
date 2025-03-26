@@ -1,6 +1,5 @@
 package no.uio.ifi.in2000.team6.rakett_app.ui.home
 
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,14 +21,11 @@ class HomeScreenViewModel(
     private val _windDirectionState = MutableStateFlow(0.0)
     val windDirectionState: StateFlow<Double> = _windDirectionState.asStateFlow()
 
-    init {
-        fetchWeatherData()
-    }
-
-    private fun fetchWeatherData() {
+    // Fetch weather data based on user input coordinates
+    fun fetchWeatherData(lat: Double, lon: Double) {
         viewModelScope.launch {
             try {
-                val report = repository.getSafetyReport(59.9139, 10.7522)
+                val report = repository.getSafetyReport(lat, lon)
                 _temperatureState.value = report.air_temperature
                 _windSpeedState.value = report.wind_speed
                 _windDirectionState.value = report.wind_direction
