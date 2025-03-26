@@ -76,7 +76,8 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion") // ContentNegotiation-plugin
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion") // JSON-støtte
 
-
+    implementation("com.mapbox.maps:android:11.10.3") //KART
+    implementation("com.mapbox.extension:maps-compose:11.10.3") //KART
     //image loading with coil
 //    implementation(libs.coil.compose)
 //    implementation(libs.coil.network.okhttp)
