@@ -1,5 +1,6 @@
 package no.uio.ifi.in2000.team6.rakett_app.data.converter
 
+import no.uio.ifi.in2000.team6.rakett_app.model.grib.GribMap
 import kotlin.math.pow
 
 fun toMeters(hPa: Int, temp: Double): Double {
@@ -12,4 +13,10 @@ fun toMeters(hPa: Int, temp: Double): Double {
     val temperatureKelvin = temp + 273.15
 
     return (temperatureKelvin / L) * (1 - (hPa / seaLevelPressure).pow((R * L) / (g * M)))
+}
+
+fun windShear(GribList: List<GribMap>) {
+
+
+
 }
