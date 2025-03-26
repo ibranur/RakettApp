@@ -4,6 +4,7 @@ import android.util.Log
 import kotlinx.coroutines.runBlocking
 import no.uio.ifi.in2000.team6.rakett_app.data.GribDataSource
 import no.uio.ifi.in2000.team6.rakett_app.data.LocationForecastDatasource
+import no.uio.ifi.in2000.team6.rakett_app.data.converter.windShear
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.GribRepository
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.LocationForecastRepository
 import no.uio.ifi.in2000.team6.rakett_app.model.grib.Grib
@@ -62,5 +63,23 @@ class ExampleUnitTest {
 
         runBlocking { println(rep.getGribMapped(lat,long).toString())}
 
+    }
+
+    @Test
+    fun windShearTest() {
+
+
+        val rep = GribRepository()
+
+        val lat = 61.42//59.9138
+        val long = 4.36//10.7522
+
+        runBlocking {
+
+            val grblist =  rep.getGribMapped(lat,long)
+            if (grblist != null) windShear(grblist).forEach { println(it) }
+            else print("fail")
+
+        }
     }
 }

@@ -13,7 +13,7 @@ class GribRepository {
     suspend fun getGribMapped(lat: Double, longitude: Double): List<GribMap>? {
         val grib: Grib = _gribDataSource.fetchGribFile(lat, longitude) ?: return null
 
-        var outList: List<GribMap> = emptyList()
+        var outList: List<GribMap> = emptyList<GribMap>()
         val temp: List<Triple<Double,Double,Double>>
         val tempList: List<Double> = grib.ranges.temperature.values
         val windSpeedList: List<Double> = grib.ranges.wind_speed.values
@@ -22,15 +22,16 @@ class GribRepository {
 
 
         if  (tempList.size == windDirectionList.size && windDirectionList.size == windSpeedList.size) {
-            //temp = tempList.zip(windSpeedList).zip(windDirectionList) {(a,b), c -> Triple(a,b,c)}
             for (i in tempList.indices) {
-                outList.plus(
+
+                outList = outList.plus(
                     GribMap(
                         toMeters(isobaricLayers[i],tempList[i]),
                         windDirectionList[i],
                         windSpeedList[i]
                         )
                 )
+
             }
         }
 
