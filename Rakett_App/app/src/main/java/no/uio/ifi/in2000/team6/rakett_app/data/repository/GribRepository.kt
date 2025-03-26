@@ -36,6 +36,6 @@ class GribRepository {
 
         return outList
 
-    }
+}
 
 }
