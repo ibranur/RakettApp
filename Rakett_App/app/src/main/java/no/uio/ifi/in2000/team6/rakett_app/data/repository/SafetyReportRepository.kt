@@ -11,14 +11,10 @@ class SafetyReportRepository {
 
     suspend fun getSafetyReport(lat: Double, longitude: Double): SafetyReport {
         val forecastData = forecast.getForecastTimeInstant(lat, longitude)
-        val gribData = gribRepository.getGribData(lat, longitude)
 
-        // Hent u og v komponenter fra GRIB-data
-        val uComponent = gribData?.ranges?.wind_speed?.values?.getOrNull(0) ?: 0.0
-        val vComponent = gribData?.ranges?.wind_speed?.values?.getOrNull(1) ?: 0.0
 
-        val windSpeed = CalculationRepository.calculateWindSpeed(uComponent, vComponent)
-        val windDirection = CalculationRepository.calculateWindDirection(uComponent, vComponent)
+        val windSpeed = forecastData.wind_speed
+        val windDirection = forecastData.wind_from_direction
 
         return SafetyReport(
             air_temperature = forecastData.air_temperature,

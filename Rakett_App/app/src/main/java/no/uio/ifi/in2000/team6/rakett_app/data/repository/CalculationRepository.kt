@@ -1,8 +1,6 @@
     package no.uio.ifi.in2000.team6.rakett_app.data.repository
 
-    import kotlin.math.atan2
     import kotlin.math.pow
-    import kotlin.math.sqrt
 
     class CalculationRepository {
 
@@ -19,4 +17,6 @@
                 return (temperatureKelvin / L) * (1 - (hPa / seaLevelPressure).pow((R * L) / (g * M)))
             }
         }
+
+
     }
