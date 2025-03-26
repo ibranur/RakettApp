@@ -1,33 +1,22 @@
     package no.uio.ifi.in2000.team6.rakett_app.data.repository
 
     import kotlin.math.atan2
+    import kotlin.math.pow
     import kotlin.math.sqrt
 
     class CalculationRepository {
 
-        // Regner ut hvor sterk vinden er basert på øst-vest og nord-sør retning
-        fun calculateWindSpeed(u: Double, v: Double): Double {
-            // u er vindstyrke i øst-vest retning, v er vindstyrke i nord-sør retning
-            // Bruker pytagoras for å regne ut total vindstyrke
-            return sqrt(u * u + v * v)
-        }
+        companion object {
+            fun toMeters(hPa: Int, temp: Double): Double {
+                val seaLevelPressure = 1013.25 // hPa
+                val L = 0.0065 // Temperature lapse rate (K/m)
+                val R = 8.314 // Universal gas constant (J/(mol·K))
+                val g = 9.80665 // Gravity acceleration (m/s²)
+                val M = 0.0289644 // Molar mass of dry air (kg/mol)
 
-        // Regner ut hvilken retning vinden kommer fra i grader (0-360)
-        fun calculateWindDirection(u: Double, v: Double): Double {
-            // Regner ut retningen vinden blåser mot
-            val directionBlowingTo = atan2(u, v)
+                val temperatureKelvin = temp + 273.15
 
-            // Gjør om til grader
-            var directionDegrees = Math.toDegrees(directionBlowingTo)
-
-            // Sørger for at vi får verdi mellom 0-360 grader
-            if (directionDegrees < 0) {
-                directionDegrees += 360.0
+                return (temperatureKelvin / L) * (1 - (hPa / seaLevelPressure).pow((R * L) / (g * M)))
             }
-
-            // Snur retningen for å få hvor vinden kommer fra
-            directionDegrees = (directionDegrees + 180.0) % 360.0
-
-            return directionDegrees
         }
     }
