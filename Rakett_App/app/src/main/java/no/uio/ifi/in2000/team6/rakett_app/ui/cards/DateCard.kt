@@ -1,7 +1,6 @@
 package no.uio.ifi.in2000.team6.rakett_app.ui.cards
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -34,12 +33,13 @@ import no.uio.ifi.in2000.team6.rakett_app.ui.Rating.WeatherRatingIndicator
 
 // 1. Use String Resources: Replace hardcoded strings with string resources for better
 //    maintainability, localization, and consistency.
-enum class ReasonType(val iconRes: Int, val descriptionRes: Int) {
-    WIND(0, R.string.reason_wind),
-    PRECIPITATION(0, R.string.reason_precipitation),
-    CLOUD_COVER(0, R.string.reason_cloud_cover),
-    HUMIDITY(0, R.string.reason_humidity),
-    CLEAR_SKY(0, R.string.reason_clear_sky)
+enum class ReasonType(val descriptionRes: Int) {
+    // maybe use icon instead?
+    WIND(R.string.reason_wind),
+    PRECIPITATION(R.string.reason_precipitation),
+    CLOUD_COVER(R.string.reason_cloud_cover),
+    HUMIDITY(R.string.reason_humidity),
+    CLEAR_SKY(R.string.reason_clear_sky)
 }
 
 data class Reason(
