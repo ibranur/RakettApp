@@ -16,11 +16,12 @@ data class DateWeatherInfo(
 )
 
 enum class ReasonType(val descriptionRes: Int) {
-    WIND(R.string.reason_wind),
-    PRECIPITATION(R.string.reason_precipitation),
-    CLOUD_COVER(R.string.reason_cloud_cover),
-    HUMIDITY(R.string.reason_humidity),
-    CLEAR_SKY(R.string.reason_clear_sky)
+    WIND(R.string.reason_wind), // e.g., "Wind (m/s)"
+    PRECIPITATION(R.string.reason_precipitation), // e.g., "Precipitation (mm)"
+    CLOUD_COVER(R.string.reason_cloud_cover), // e.g., "Cloud Cover (%)"
+    HUMIDITY(R.string.reason_humidity), // e.g., "Humidity (%)"
+    THUNDER(R.string.reason_thunder), // "Probability of Thunder (%)"
+    CLEAR_SKY(R.string.reason_clear_sky),
 }
 
 data class Reason(

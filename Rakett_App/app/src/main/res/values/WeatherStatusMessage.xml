@@ -1,9 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="reason_wind">Wind</string>
-    <string name="reason_precipitation">Precipitation</string>
-    <string name="reason_cloud_cover">Cloud Cover</string>
-    <string name="reason_humidity">Humidity</string>
-    <string name="reason_clear_sky">Clear Sky</string>
+    <string name="wind_speed">Wind Speed</string>
+    <string name="wind_gust">Wind Gust</string>
+    <string name="wind_direction">Wind Direction</string>
+    <string name="precipitation">Precipitation</string>
+    <string name="cloud_cover">Cloud Cover</string>
+    <string name="humidity">Humidity</string>
+    <string name="thunder_probability">Probability of Thunder</string>
+    <string name="air_pressure">Air Pressure</string>
+    <string name="air_temperature">Air Temperature</string>
+     <string name="reason_wind">Wind</string>
+     <string name="reason_precipitation">Precipitation</string>
+     <string name="reason_cloud_cover">Cloud Cover</string>
+     <string name="reason_humidity">Humidity</string>
+     <string name="reason_clear_sky">Clear Sky</string>
     <string name="no_good_time_windows">No good time windows found.</string>
+     <string name="reason_thunder">Probability of Thunder (%)</string>
+    <string name="no_weather_details">No weather details available.</string>
 </resources>
