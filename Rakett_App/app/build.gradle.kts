@@ -81,4 +81,6 @@ dependencies {
     //image loading with coil
 //    implementation(libs.coil.compose)
 //    implementation(libs.coil.network.okhttp)
+    implementation(libs.androidx.navigation.compose)
+    implementation("androidx.compose.material:material-icons-extended:1.5.0")
 }
