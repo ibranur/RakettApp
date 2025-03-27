@@ -1,6 +1,6 @@
 package no.uio.ifi.in2000.team6.rakett_app.model.LocationForecastCompact
 
-data class Details(
+data class DetailsInstant(
     val air_pressure_at_sea_level: Double,
     val air_temperature: Double,
     val cloud_area_fraction: Double,
