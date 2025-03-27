@@ -31,35 +31,6 @@ import androidx.compose.ui.unit.sp
 import no.uio.ifi.in2000.team6.rakett_app.R
 import no.uio.ifi.in2000.team6.rakett_app.ui.Rating.WeatherRatingIndicator
 
-// 1. Use String Resources: Replace hardcoded strings with string resources for better
-//    maintainability, localization, and consistency.
-enum class ReasonType(val descriptionRes: Int) {
-    // maybe use icon instead?
-    WIND(R.string.reason_wind),
-    PRECIPITATION(R.string.reason_precipitation),
-    CLOUD_COVER(R.string.reason_cloud_cover),
-    HUMIDITY(R.string.reason_humidity),
-    CLEAR_SKY(R.string.reason_clear_sky)
-}
-
-data class Reason(
-    val type: ReasonType,
-    val value: String
-)
-
-// 2. Use More Descriptive Names: Rename `GoodTimeWindow.reason` to `details` or
-//    `description` for clarity.  The word "reason" is overloaded in this context.
-data class GoodTimeWindow(
-    val time: String,
-    val details: String
-)
-
-data class DateWeatherInfo(
-    val date: String,
-    val weatherScore: Double,
-    val goodTimeWindows: List<GoodTimeWindow>
-)
-
 @Composable
 fun DateCard(
     weatherInfo: DateWeatherInfo,
