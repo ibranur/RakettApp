@@ -1,6 +1,6 @@
 package no.uio.ifi.in2000.team6.rakett_app.model.LocationForecastCompact
 
-data class DetailsX(
+data class DetailsNextXHours(
     val air_temperature_max: Double,
     val air_temperature_min: Double,
     val precipitation_amount: Double,

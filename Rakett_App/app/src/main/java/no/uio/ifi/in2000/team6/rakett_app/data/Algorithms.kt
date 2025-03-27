@@ -1,14 +1,13 @@
-package no.uio.ifi.in2000.team6.rakett_app.data.converter
+package no.uio.ifi.in2000.team6.rakett_app.data
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecastCompact.Data
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecastCompact.Forecast
 import no.uio.ifi.in2000.team6.rakett_app.model.grib.GribMap
+import java.time.DayOfWeek
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import java.time.temporal.TemporalUnit
 import kotlin.math.cos
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -45,7 +44,7 @@ private fun calculateWindShear(grib1: GribMap, grib2: GribMap): Double {
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-fun convertToNorwegianTime(date: String): ZonedDateTime {
+fun toCET(date: String): ZonedDateTime {
 
     // Parse the string into a ZonedDateTime object in UTC
     val utcDateTime = ZonedDateTime.parse(date, DateTimeFormatter.ISO_DATE_TIME)
@@ -61,27 +60,67 @@ data class Test(
     val air_temperature: Double,
     val wind_speed: Double,
     val wind_direction: Double,
+    val precipitation_amount_one_hour: Double?,
+    val symbol_code: String?
 
 )
 
-@RequiresApi(Build.VERSION_CODES.O)
-fun nextFiveDaysSummary(forecast: Forecast): Map<Int,List<Test>> {
-    val today = ZonedDateTime.now(ZoneId.of("Europe/Oslo"))
 
-    var temp = today
+data class Test2(
+    val time: ZonedDateTime,
+    val air_temperature_max: Double,
+    val air_temperature_min: Double,
+    val precipitation_amount: Double,
+    val precipitation_amount_max: Double,
+    val precipitation_amount_min: Double,
+    val probability_of_precipitation: Int,
+    val probability_of_thunder: Double,
+    val ultraviolet_index_clear_sky_max: Int,
+    val symbol_code: String,
+)
+@RequiresApi(Build.VERSION_CODES.O)
+fun hourlyForecastForGivenDay(forecast: Forecast, dayOfWeek: DayOfWeek): Map<Int,List<Test>> {
+    val timeLimit = toCET(forecast.properties.timeseries[0].time).dayOfYear + 4
     val output: Map<Int,List<Test>> = forecast.properties.timeseries
-        .filter(predicate = {convertToNorwegianTime(it.time).hour in 8..20})
+        .filter(predicate = {
+            toCET(it.time).dayOfWeek == dayOfWeek && toCET(it.time).dayOfYear < timeLimit})
         .groupBy(
-            keySelector = {convertToNorwegianTime(it.time).dayOfYear},
+            keySelector = { toCET(it.time).hour},
             valueTransform = {
                 Test(
-                    time = convertToNorwegianTime(it.time).hour,
+                    time = toCET(it.time).hour,
                     air_temperature = it.data.instant.details.air_temperature,
                     wind_speed = it.data.instant.details.wind_speed,
-                    wind_direction = it.data.instant.details.wind_from_direction
+                    wind_direction = it.data.instant.details.wind_from_direction,
+                    precipitation_amount_one_hour = it.data.next_1_hours?.details?.precipitation_amount,
+                    symbol_code = it.data.next_1_hours?.summary?.symbol_code
                 )
         }
     )
 
+    return output
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun summaryOfFiveDays(forecast:Forecast): Map<Int,List<Test2>> {
+    val output: Map<Int,List<Test2>> = forecast.properties.timeseries
+        .filter(predicate = { toCET(it.time).hour in 6..9  && it.data.next_12_hours != null})
+        .groupBy(
+            keySelector = { toCET(it.time).dayOfYear},
+            valueTransform = {
+                Test2(
+                    time = toCET(it.time),
+                    air_temperature_max = it.data.next_6_hours!!.details.air_temperature_max,
+                    air_temperature_min = it.data.next_6_hours.details.air_temperature_min ,
+                    precipitation_amount = it.data.next_6_hours.details.precipitation_amount ,
+                    precipitation_amount_max =  it.data.next_6_hours.details.precipitation_amount_max,
+                    precipitation_amount_min =  it.data.next_6_hours.details.precipitation_amount_min,
+                    probability_of_precipitation =  it.data.next_12_hours!!.details.probability_of_precipitation,
+                    probability_of_thunder =  it.data.next_6_hours.details.probability_of_thunder,
+                    ultraviolet_index_clear_sky_max =  it.data.next_6_hours.details.ultraviolet_index_clear_sky_max,
+                    symbol_code = it.data.next_12_hours.summary.symbol_code,
+                )
+            }
+        )
     return output
 }

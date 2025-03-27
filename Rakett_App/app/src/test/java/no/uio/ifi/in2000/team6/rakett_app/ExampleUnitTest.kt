@@ -1,16 +1,18 @@
 package no.uio.ifi.in2000.team6.rakett_app
 
-import android.util.Log
 import kotlinx.coroutines.runBlocking
 import no.uio.ifi.in2000.team6.rakett_app.data.GribDataSource
 import no.uio.ifi.in2000.team6.rakett_app.data.LocationForecastDatasource
-import no.uio.ifi.in2000.team6.rakett_app.data.converter.windShear
+import no.uio.ifi.in2000.team6.rakett_app.data.hourlyForecastForGivenDay
+import no.uio.ifi.in2000.team6.rakett_app.data.windShear
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.GribRepository
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.LocationForecastRepository
+import no.uio.ifi.in2000.team6.rakett_app.data.summaryOfFiveDays
 import no.uio.ifi.in2000.team6.rakett_app.model.grib.Grib
 import org.junit.Test
 
 import org.junit.Assert.*
+import java.time.DayOfWeek
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -28,16 +30,35 @@ class ExampleUnitTest {
     @Test
     fun locforecast() {
 
-         val lat = 59.91386880
-         val long = 10.75224540
+        val lat = 59.9138
+        val long = 10.7522
         val locationForecastDS = LocationForecastDatasource()
         val rep = LocationForecastRepository()
 
-        var output = ""
-        runBlocking{ output = rep.getForecastTimeInstant(lat,long).toString() }
 
-//        Log.e("TAG",output)
-       println(output)
+        runBlocking {
+            hourlyForecastForGivenDay(locationForecastDS.fetchForecast(lat, long)!!, DayOfWeek.FRIDAY).forEach {
+                (key, value) ->
+                println("$key : $value")
+            }
+        }
+    }
+
+    @Test
+    fun summaryFive() {
+
+        val lat = 59.9138
+        val long = 10.7522
+        val locationForecastDS = LocationForecastDatasource()
+        val rep = LocationForecastRepository()
+
+
+        runBlocking {
+            summaryOfFiveDays(locationForecastDS.fetchForecast(lat, long)!!).forEach {
+                    (key, value) ->
+                println("$key : $value")
+            }
+        }
     }
 
     @Test
