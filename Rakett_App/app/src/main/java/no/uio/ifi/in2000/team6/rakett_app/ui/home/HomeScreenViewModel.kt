@@ -21,7 +21,10 @@ class HomeScreenViewModel(
     private val _windDirectionState = MutableStateFlow(0.0)
     val windDirectionState: StateFlow<Double> = _windDirectionState.asStateFlow()
 
-    // Fetch weather data based on user input coordinates
+    private val _savedCoordinates = MutableStateFlow<List<Pair<Double, Double>>>(emptyList())
+    val savedCoordinates: StateFlow<List<Pair<Double, Double>>> = _savedCoordinates.asStateFlow()
+
+
     fun fetchWeatherData(lat: Double, lon: Double) {
         viewModelScope.launch {
             try {
@@ -32,11 +35,19 @@ class HomeScreenViewModel(
             } catch (e: Exception) {
                 println("ViewModel Fetch Error: ${e.message}")
                 e.printStackTrace()
-                // Set default values if fetch fails
+                // default values if fetch fails
                 _temperatureState.value = 0.0
                 _windSpeedState.value = 0.0
                 _windDirectionState.value = 0.0
             }
+        }
+    }
+
+    fun saveCoordinates(lat: Double, lon: Double) {
+        val currentList = _savedCoordinates.value.toMutableList()
+        if (!currentList.contains(lat to lon)) {
+            currentList.add(lat to lon)
+            _savedCoordinates.value = currentList
         }
     }
 }
