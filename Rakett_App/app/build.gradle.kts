@@ -63,7 +63,8 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-
+    //date-picker
+    implementation("com.jakewharton.threetenabp:threetenabp:1.4.6")
     //ktor
     val ktorVersion = "3.0.3"
     implementation("io.ktor:ktor-client-core:$ktorVersion") //Kjernefunksjonaliteten
