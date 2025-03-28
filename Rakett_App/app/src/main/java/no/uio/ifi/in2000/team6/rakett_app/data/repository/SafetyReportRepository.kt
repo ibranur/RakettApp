@@ -1,15 +1,19 @@
 package no.uio.ifi.in2000.team6.rakett_app.data.repository
 
+import android.icu.util.TimeUnit
 import no.uio.ifi.in2000.team6.rakett_app.model.grib.GribMap
 import no.uio.ifi.in2000.team6.rakett_app.model.safetyreport.DailySafetyReport
 import no.uio.ifi.in2000.team6.rakett_app.model.safetyreport.SafetyReport
+import org.threeten.bp.LocalDate
+import org.threeten.bp.LocalTime
+import java.sql.Time
 
 
 class SafetyReportRepository {
     private val forecast = LocationForecastRepository()
     private val gribRepository = GribRepository()
 
-    suspend fun getSafetyReport(lat: Double, longitude: Double): SafetyReport {
+    suspend fun getSafetyReport(lat: Double, longitude: Double, time: LocalTime): SafetyReport {
         val forecastData = forecast.getForecastTimeInstant(lat, longitude)
         val gribData = gribRepository.getGribMapped(lat,longitude)
 
@@ -39,7 +43,7 @@ class SafetyReportRepository {
         )
     }
 
-    suspend fun getDailySafetyReport(lat: Double, longitude: Double): DailySafetyReport {
+    suspend fun getDailySafetyReport(lat: Double, longitude: Double, day: LocalDate): DailySafetyReport {
         val forecastData = forecast.getForecastTimeInstant(lat, longitude)
         val gribData = gribRepository.getGribMapped(lat,longitude)
 
@@ -49,7 +53,7 @@ class SafetyReportRepository {
 
         //EKSEMPEL DATA UNDER
         return DailySafetyReport(
-            safetyReports = listOf(getSafetyReport(lat,longitude)) ,
+            safetyReports = listOf(getSafetyReport(lat,longitude, LocalTime.of(0, 0))) ,
             score = 0.0
         )
     }
