@@ -1,21 +1,23 @@
 package no.uio.ifi.in2000.team6.rakett_app.ui.home
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.SafetyReportRepository
+import no.uio.ifi.in2000.team6.rakett_app.ui.cards.DayForecastCard
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HomeScreen(modifier: Modifier = Modifier) {
     val viewModel = remember { HomeScreenViewModel(SafetyReportRepository()) }
-    val temperature by viewModel.temperatureState.collectAsState()
-    val windSpeed by viewModel.windSpeedState.collectAsState()
-    val windDirection by viewModel.windDirectionState.collectAsState()
 
     var latitude by remember { mutableStateOf("59.9139") }
     var longitude by remember { mutableStateOf("10.7522") }
@@ -23,6 +25,9 @@ fun HomeScreen(modifier: Modifier = Modifier) {
     //Dropdown meny status
     var expanded by remember { mutableStateOf(false) }
     val savedCoordinates by viewModel.savedCoordinates.collectAsState()
+
+    //weather forecast
+    val fiveDayUIState by viewModel.fiveDayUIState.collectAsState()
 
     Column(
         modifier = modifier.fillMaxSize().padding(16.dp),
@@ -51,7 +56,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
             Button(onClick = {
                 val lat = latitude.toDoubleOrNull() ?: 59.9139
                 val lon = longitude.toDoubleOrNull() ?: 10.7522
-                viewModel.fetchWeatherData(lat, lon)
+                viewModel.getFiveDayForecast(lat,lon)
             }) {
                 Text("Get Weather")
             }
@@ -70,18 +75,21 @@ fun HomeScreen(modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.height(16.dp))
 
         // Display weather data
-        Text(
-            text = "$temperature°C",
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.displayLarge
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "Wind: $windSpeed m/s, Direction: $windDirection°",
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.bodyLarge
-        )
-        Spacer(modifier = Modifier.height(16.dp))
+        Column {
+            LazyColumn (
+                verticalArrangement = Arrangement.spacedBy(3.dp)
+            )
+            {
+                items(fiveDayUIState.forecast.toList()) { (_, fiveday) ->
+                    if (fiveday != null) {
+                        DayForecastCard(
+                            fiveDay = fiveday,
+                            onClick = {}
+                        )
+                    }
+                }
+            }
+        }
 
         //Dropdown menu
         Box {
@@ -105,4 +113,15 @@ fun HomeScreen(modifier: Modifier = Modifier) {
             }
         }
     }
+
+
+}
+
+
+
+@Composable
+@Preview(showBackground = true)
+@RequiresApi(Build.VERSION_CODES.O)
+fun HomePreview() {
+    HomeScreen()
 }

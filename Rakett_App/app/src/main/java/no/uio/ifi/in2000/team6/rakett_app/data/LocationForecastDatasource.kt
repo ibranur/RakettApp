@@ -11,7 +11,7 @@ import java.net.UnknownHostException
 class LocationForecastDatasource {
 
     suspend fun fetchForecast(lat: Double, longitude: Double): Forecast? {
-        val url: String = "https://in2000.api.met.no/weatherapi/locationforecast/2.0/compact?lat=$lat&lon=$longitude"
+        val url: String = "https://in2000.api.met.no/weatherapi/locationforecast/2.0/complete?lat=$lat&lon=$longitude"
 
         val forecast: Forecast? = try {
             val response: HttpResponse = APIClient.client.get(
@@ -28,7 +28,6 @@ class LocationForecastDatasource {
         catch(e: UnknownHostException) {
             null
         }
-
         return forecast
     }
 
