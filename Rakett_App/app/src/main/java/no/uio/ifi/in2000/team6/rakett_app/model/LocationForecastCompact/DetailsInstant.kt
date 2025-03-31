@@ -1,5 +1,7 @@
 package no.uio.ifi.in2000.team6.rakett_app.model.LocationForecastCompact
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class DetailsInstant(
     val air_pressure_at_sea_level: Double,
     val air_temperature: Double,

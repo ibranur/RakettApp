@@ -1,5 +1,7 @@
 package no.uio.ifi.in2000.team6.rakett_app.model.LocationForecastCompact
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class Units(
     val air_pressure_at_sea_level: String,
     val air_temperature: String,

@@ -4,8 +4,9 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 
-data class NextXHours(
-    val details: DetailsNextXHours,
+@Serializable
+data class NextXHours<T>(
+    val details: T,
     val summary: Summary,
 )
 

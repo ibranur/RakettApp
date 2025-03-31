@@ -3,11 +3,12 @@ package no.uio.ifi.in2000.team6.rakett_app
 import kotlinx.coroutines.runBlocking
 import no.uio.ifi.in2000.team6.rakett_app.data.GribDataSource
 import no.uio.ifi.in2000.team6.rakett_app.data.LocationForecastDatasource
-import no.uio.ifi.in2000.team6.rakett_app.data.hourlyForecastForGivenDay
+import no.uio.ifi.in2000.team6.rakett_app.data.fiveDaysFunction
 import no.uio.ifi.in2000.team6.rakett_app.data.windShear
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.GribRepository
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.LocationForecastRepository
-import no.uio.ifi.in2000.team6.rakett_app.data.summaryOfFiveDays
+import no.uio.ifi.in2000.team6.rakett_app.data.toCET
+import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecastCompact.Forecast
 import no.uio.ifi.in2000.team6.rakett_app.model.grib.Grib
 import org.junit.Test
 
@@ -33,17 +34,27 @@ class ExampleUnitTest {
         val lat = 59.9138
         val long = 10.7522
         val locationForecastDS = LocationForecastDatasource()
-        val rep = LocationForecastRepository()
+        var forecast: Forecast?
+        runBlocking{forecast = locationForecastDS.fetchForecast(lat, long)}
 
+        if (forecast == null) return
+        println(forecast!!.properties.timeseries
+            .forEach {println(it.data.next_6_hours?.details)}
+        )
 
-        runBlocking {
-            hourlyForecastForGivenDay(locationForecastDS.fetchForecast(lat, long)!!, DayOfWeek.FRIDAY).forEach {
-                (key, value) ->
-                println("$key : $value")
-            }
-        }
+//        runBlocking {
+//            hourlyForecastForGivenDay(locationForecastDS.fetchForecast(lat, long)!!, DayOfWeek.FRIDAY)
+//            .forEach {
+//                (key, value) ->
+//                println("$key : $value")
+//            }
+//        }
     }
 
+    @Test
+    fun testConv() {
+        println(toCET("2025-04-04T06:00:00Z"))
+    }
     @Test
     fun summaryFive() {
 
@@ -54,7 +65,7 @@ class ExampleUnitTest {
 
 
         runBlocking {
-            summaryOfFiveDays(locationForecastDS.fetchForecast(lat, long)!!).forEach {
+            fiveDaysFunction(locationForecastDS.fetchForecast(lat, long)!!).forEach {
                     (key, value) ->
                 println("$key : $value")
             }

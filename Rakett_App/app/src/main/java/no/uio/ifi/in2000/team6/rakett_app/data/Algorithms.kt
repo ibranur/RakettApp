@@ -1,15 +1,21 @@
 package no.uio.ifi.in2000.team6.rakett_app.data
 
+import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
+import no.uio.ifi.in2000.team6.rakett_app.R
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecastCompact.Forecast
+import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.FiveDay
+import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.HourlyDay
 import no.uio.ifi.in2000.team6.rakett_app.model.grib.GribMap
 import java.time.DayOfWeek
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 import kotlin.math.cos
 import kotlin.math.pow
+import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 
@@ -55,72 +61,58 @@ fun toCET(date: String): ZonedDateTime {
     return norwegianTime
 }
 
-data class Test(
-    val time: Int,
-    val air_temperature: Double,
-    val wind_speed: Double,
-    val wind_direction: Double,
-    val precipitation_amount_one_hour: Double?,
-    val symbol_code: String?
 
-)
-
-
-data class Test2(
-    val time: ZonedDateTime,
-    val air_temperature_max: Double,
-    val air_temperature_min: Double,
-    val precipitation_amount: Double,
-    val precipitation_amount_max: Double,
-    val precipitation_amount_min: Double,
-    val probability_of_precipitation: Int,
-    val probability_of_thunder: Double,
-    val ultraviolet_index_clear_sky_max: Int,
-    val symbol_code: String,
-)
 @RequiresApi(Build.VERSION_CODES.O)
-fun hourlyForecastForGivenDay(forecast: Forecast, dayOfWeek: DayOfWeek): Map<Int,List<Test>> {
-    val timeLimit = toCET(forecast.properties.timeseries[0].time).dayOfYear + 4
-    val output: Map<Int,List<Test>> = forecast.properties.timeseries
-        .filter(predicate = {
-            toCET(it.time).dayOfWeek == dayOfWeek && toCET(it.time).dayOfYear < timeLimit})
-        .groupBy(
-            keySelector = { toCET(it.time).hour},
-            valueTransform = {
-                Test(
-                    time = toCET(it.time).hour,
-                    air_temperature = it.data.instant.details.air_temperature,
-                    wind_speed = it.data.instant.details.wind_speed,
-                    wind_direction = it.data.instant.details.wind_from_direction,
-                    precipitation_amount_one_hour = it.data.next_1_hours?.details?.precipitation_amount,
-                    symbol_code = it.data.next_1_hours?.summary?.symbol_code
-                )
-        }
-    )
+fun fiveDaysFunction(forecast: Forecast): Map<Int, FiveDay?> {
+    val windAvg = WindSpeedAvg(forecast)
 
-    return output
+    val output: Map<Int, FiveDay?> = forecast.properties.timeseries
+        .filter(predicate = { it.time.contains("06:00:00Z") })
+        .groupBy(
+            keySelector = { toCET(it.time).dayOfYear },
+            valueTransform = {
+
+                FiveDay(
+                    time = toCET(it.time), //formattedtime så man får det på formen; Friday, 28. March.
+                    formattedTime = toCET(it.time).format(
+                        DateTimeFormatter.ofPattern(
+                            "EEEE, d. MMMM",
+                            Locale.ENGLISH
+                        )
+                    ),
+                    air_temperature_max = it.data.next_6_hours!!.details.air_temperature_max.toInt(),
+                    air_temperature_min = it.data.next_6_hours.details.air_temperature_min,
+                    precipitation_amount = it.data.next_6_hours.details.precipitation_amount,
+                    precipitation_amount_max = it.data.next_6_hours.details.precipitation_amount_max,
+                    precipitation_amount_min = it.data.next_6_hours.details.precipitation_amount_min,
+                    probability_of_precipitation = it.data.next_6_hours.details.probability_of_precipitation,
+                    symbol_code = it.data.next_12_hours?.summary?.symbol_code,
+                    wind_avg = windAvg[toCET(it.time).dayOfYear]
+                )
+            })
+        .mapValues { (_, list) -> list.firstOrNull() }
+
+
+return output
 }
 
+//Vindhastighet finnes bare i Instant-modellen. Funksjonen tar gjennomsnittet av alle vindverdiene pr dag
 @RequiresApi(Build.VERSION_CODES.O)
-fun summaryOfFiveDays(forecast:Forecast): Map<Int,List<Test2>> {
-    val output: Map<Int,List<Test2>> = forecast.properties.timeseries
-        .filter(predicate = { toCET(it.time).hour in 6..9  && it.data.next_12_hours != null})
+fun WindSpeedAvg(forecast: Forecast): Map<Int, Double>{
+    return forecast.properties.timeseries
         .groupBy(
             keySelector = { toCET(it.time).dayOfYear},
-            valueTransform = {
-                Test2(
-                    time = toCET(it.time),
-                    air_temperature_max = it.data.next_6_hours!!.details.air_temperature_max,
-                    air_temperature_min = it.data.next_6_hours.details.air_temperature_min ,
-                    precipitation_amount = it.data.next_6_hours.details.precipitation_amount ,
-                    precipitation_amount_max =  it.data.next_6_hours.details.precipitation_amount_max,
-                    precipitation_amount_min =  it.data.next_6_hours.details.precipitation_amount_min,
-                    probability_of_precipitation =  it.data.next_12_hours!!.details.probability_of_precipitation,
-                    probability_of_thunder =  it.data.next_6_hours.details.probability_of_thunder,
-                    ultraviolet_index_clear_sky_max =  it.data.next_6_hours.details.ultraviolet_index_clear_sky_max,
-                    symbol_code = it.data.next_12_hours.summary.symbol_code,
-                )
-            }
+            valueTransform = {it.data.instant.details.wind_speed}
         )
-    return output
+        .mapValues { (_, values) ->
+            (values.average()*10).roundToInt()/10.0 //runder av til ett desimal
+             }
 }
+
+
+fun getDrawableIdByName(context: Context, resourceName: String?): Int {
+    if (resourceName == null) return R.drawable.notfound
+    val drawable = context.resources.getIdentifier(resourceName, "drawable", context.packageName)
+    return if (drawable != 0) drawable else R.drawable.notfound
+}
+
