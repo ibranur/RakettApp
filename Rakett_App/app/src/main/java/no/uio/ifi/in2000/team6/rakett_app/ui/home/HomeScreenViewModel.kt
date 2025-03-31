@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import no.uio.ifi.in2000.team6.rakett_app.data.CoordinatesManager
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.SafetyReportRepository
 
 class HomeScreenViewModel(
@@ -48,6 +49,12 @@ class HomeScreenViewModel(
         if (!currentList.contains(lat to lon)) {
             currentList.add(lat to lon)
             _savedCoordinates.value = currentList
+
+            // Update shared coordinates
+            CoordinatesManager.updateLocation(lat, lon)
+
+            // Fetch weather data with new coordinates
+            fetchWeatherData(lat, lon)
         }
     }
 }

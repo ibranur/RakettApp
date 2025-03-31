@@ -22,6 +22,7 @@ enum class ReasonType(val descriptionRes: Int) {
     HUMIDITY(R.string.reason_humidity), // e.g., "Humidity (%)"
     THUNDER(R.string.reason_thunder), // "Probability of Thunder (%)"
     CLEAR_SKY(R.string.reason_clear_sky),
+    TEMPERATURE(R.string.air_temperature),
 }
 
 data class Reason(

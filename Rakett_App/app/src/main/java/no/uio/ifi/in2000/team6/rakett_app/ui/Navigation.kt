@@ -1,5 +1,8 @@
 package no.uio.ifi.in2000.team6.rakett_app.ui
 
+import StartScreenViewModel
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -27,7 +30,6 @@ import no.uio.ifi.in2000.team6.rakett_app.ui.home.HomeScreen
 import no.uio.ifi.in2000.team6.rakett_app.ui.home.HomeScreenViewModel
 import no.uio.ifi.in2000.team6.rakett_app.ui.saved.SavedLocationScreen
 import no.uio.ifi.in2000.team6.rakett_app.ui.start.StartScreen
-import no.uio.ifi.in2000.team6.rakett_app.ui.start.StartScreenViewModel
 
 sealed class Screen(val route: String, val label: String) {
     data object Home : Screen("home", "Oppskytningssted")
@@ -35,6 +37,7 @@ sealed class Screen(val route: String, val label: String) {
     data object Saved : Screen("saved", "Lagret")
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun Navigation() {
     val navController = rememberNavController()
@@ -42,7 +45,7 @@ fun Navigation() {
     //Opprette repos og viewmodels
     val safetyReportRepository = SafetyReportRepository()
     val homeScreenViewModel = HomeScreenViewModel(safetyReportRepository)
-    val startScreenViewModel = StartScreenViewModel()
+    val startScreenViewModel = StartScreenViewModel(safetyReportRepository)
 
 
     Scaffold(
