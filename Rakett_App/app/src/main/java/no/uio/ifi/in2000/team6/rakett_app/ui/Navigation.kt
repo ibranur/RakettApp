@@ -13,6 +13,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -21,9 +22,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import no.uio.ifi.in2000.team6.rakett_app.data.repository.SafetyReportRepository
 import no.uio.ifi.in2000.team6.rakett_app.ui.home.HomeScreen
+import no.uio.ifi.in2000.team6.rakett_app.ui.home.HomeScreenViewModel
 import no.uio.ifi.in2000.team6.rakett_app.ui.saved.SavedLocationScreen
 import no.uio.ifi.in2000.team6.rakett_app.ui.start.StartScreen
+import no.uio.ifi.in2000.team6.rakett_app.ui.start.StartScreenViewModel
 
 sealed class Screen(val route: String, val label: String) {
     data object Home : Screen("home", "Oppskytningssted")
@@ -35,6 +39,12 @@ sealed class Screen(val route: String, val label: String) {
 fun Navigation() {
     val navController = rememberNavController()
 
+    //Opprette repos og viewmodels
+    val safetyReportRepository = SafetyReportRepository()
+    val homeScreenViewModel = HomeScreenViewModel(safetyReportRepository)
+    val startScreenViewModel = StartScreenViewModel()
+
+
     Scaffold(
         bottomBar = { BottomNavigationBar(navController) }
     ) { innerPadding ->
@@ -44,10 +54,10 @@ fun Navigation() {
                 startDestination = Screen.Home.route
             ) {
                 composable(route = Screen.Home.route) {
-                    HomeScreen()
+                    HomeScreen(viewModel = homeScreenViewModel)
                 }
                 composable(route = Screen.Start.route) {
-                    StartScreen()
+                    StartScreen(viewModel = startScreenViewModel)
                 }
                 composable(route = Screen.Saved.route) {
                     SavedLocationScreen()

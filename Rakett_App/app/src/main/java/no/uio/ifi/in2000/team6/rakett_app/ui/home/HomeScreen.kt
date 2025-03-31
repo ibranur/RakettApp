@@ -11,8 +11,11 @@ import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.SafetyReportRepository
 
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier) {
-    val viewModel = remember { HomeScreenViewModel(SafetyReportRepository()) }
+fun HomeScreen(
+    modifier: Modifier = Modifier,
+    viewModel: HomeScreenViewModel
+) {
+
     val temperature by viewModel.temperatureState.collectAsState()
     val windSpeed by viewModel.windSpeedState.collectAsState()
     val windDirection by viewModel.windDirectionState.collectAsState()

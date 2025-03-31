@@ -15,7 +15,10 @@ import org.threeten.bp.format.DateTimeFormatter
 import java.util.Calendar
 
 @Composable
-fun StartScreen(modifier: Modifier = Modifier) {
+fun StartScreen(
+    modifier: Modifier = Modifier,
+    viewModel: StartScreenViewModel //brukes ikke enda.
+) {
     Column(
         modifier = modifier.fillMaxSize().padding(16.dp),
         verticalArrangement = Arrangement.Top,
