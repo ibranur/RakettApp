@@ -31,7 +31,7 @@ class HomeScreenViewModel(
                 val report = repository.getSafetyReport(lat, lon)
                 _temperatureState.value = report.air_temperature
                 _windSpeedState.value = report.wind_speed
-                _windDirectionState.value = report.wind_direction
+                _windDirectionState.value = report.wind_from_direction
             } catch (e: Exception) {
                 println("ViewModel Fetch Error: ${e.message}")
                 e.printStackTrace()
