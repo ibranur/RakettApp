@@ -90,10 +90,9 @@ fun HourShortInfo(
     fourHour: FourHour
 ) {
     Column(
-        modifier = Modifier.padding(16.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -112,7 +111,6 @@ fun HourShortInfo(
             )
             WeatherRatingIndicator(ScoreHour(fourHour))
         }
-        Spacer(modifier = Modifier.height(12.dp))
     }
 }
 
