@@ -40,8 +40,8 @@ class SafetyReportRepository {
         val hourlyDetails = locationForecastRepository.getHourlyDetailsForDay(lat, lon, date)
         return hourlyDetails.map { hourDetails ->
             HourlyWeatherData(
-                time = "${hourDetails.hour}:00",
-                hourOfDay = hourDetails.hour,
+                time = "${hourDetails.time}:00",
+                hourOfDay = hourDetails.time,
                 airTemperature = hourDetails.details.air_temperature,
                 windSpeed = hourDetails.details.wind_speed,
                 windGust = hourDetails.details.wind_speed_of_gust ?: 0.0,

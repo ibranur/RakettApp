@@ -66,8 +66,7 @@ class ExampleUnitTest {
 
         runBlocking {
             fiveDaysFunction(locationForecastDS.fetchForecast(lat, long)!!).forEach {
-                    (key, value) ->
-                println("$key : $value")
+                println(it)
             }
         }
     }
@@ -114,4 +113,6 @@ class ExampleUnitTest {
 
         }
     }
+    
+
 }

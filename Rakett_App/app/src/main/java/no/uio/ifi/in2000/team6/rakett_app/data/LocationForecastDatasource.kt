@@ -12,7 +12,7 @@ class LocationForecastDatasource {
     private val TAG = "LocationForecastDatasource" // Tag for Logcat
 
     suspend fun fetchForecast(latitude: Double, longitude: Double): Forecast? {
-        val apiUrl = "https://in2000.api.met.no/weatherapi/locationforecast/2.0/compact"
+        val apiUrl = "https://in2000.api.met.no/weatherapi/locationforecast/2.0/complete"
         val url = "$apiUrl?lat=$latitude&lon=$longitude"
 
         Log.d(TAG, "Henter data fra: $url")

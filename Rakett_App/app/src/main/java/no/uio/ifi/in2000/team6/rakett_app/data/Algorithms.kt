@@ -4,6 +4,8 @@ import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
 import no.uio.ifi.in2000.team6.rakett_app.R
+import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecastCompact.DetailsInstant
+import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecastCompact.DetailsNext1Hour
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecastCompact.Forecast
 import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.FiveDay
 import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.HourlyDay
@@ -63,16 +65,14 @@ fun toCET(date: String): ZonedDateTime {
 
 
 @RequiresApi(Build.VERSION_CODES.O)
-fun fiveDaysFunction(forecast: Forecast): Map<Int, FiveDay?> {
+fun fiveDaysFunction(forecast: Forecast): List<FiveDay?> {
     val windAvg = WindSpeedAvg(forecast)
 
-    val output: Map<Int, FiveDay?> = forecast.properties.timeseries
-        .filter(predicate = { it.time.contains("06:00:00Z") })
-        .groupBy(
-            keySelector = { toCET(it.time).dayOfYear },
-            valueTransform = {
+    val output: List<FiveDay?> = forecast.properties.timeseries
+        .filter(predicate = { it.time.contains("06:00:00Z") && it.data.next_6_hours != null})
+        .map{
 
-                FiveDay(
+            FiveDay(
                     time = toCET(it.time), //formattedtime så man får det på formen; Friday, 28. March.
                     formattedTime = toCET(it.time).format(
                         DateTimeFormatter.ofPattern(
@@ -86,14 +86,27 @@ fun fiveDaysFunction(forecast: Forecast): Map<Int, FiveDay?> {
                     precipitation_amount_max = it.data.next_6_hours.details.precipitation_amount_max,
                     precipitation_amount_min = it.data.next_6_hours.details.precipitation_amount_min,
                     probability_of_precipitation = it.data.next_6_hours.details.probability_of_precipitation,
-                    symbol_code = it.data.next_12_hours?.summary?.symbol_code,
+                    symbol_code = it.data.next_12_hours!!.summary.symbol_code,
                     wind_avg = windAvg[toCET(it.time).dayOfYear]
                 )
-            })
-        .mapValues { (_, list) -> list.firstOrNull() }
+            }
+
 
 
 return output
+}
+
+
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun nextFourHours(forecast: Forecast): List<DetailsInstant> {
+    val firstHour = toCET(forecast.properties.timeseries[0].time)
+    var currentHour = firstHour
+    var output: List<DetailsInstant>
+
+    output =
+
+
 }
 
 //Vindhastighet finnes bare i Instant-modellen. Funksjonen tar gjennomsnittet av alle vindverdiene pr dag

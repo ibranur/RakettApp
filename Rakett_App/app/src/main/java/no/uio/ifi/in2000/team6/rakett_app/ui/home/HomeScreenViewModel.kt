@@ -42,11 +42,11 @@ class HomeScreenViewModel(
     @RequiresApi(Build.VERSION_CODES.O)
     fun getFiveDayForecast(lat: Double, lon: Double) {
         viewModelScope.launch(Dispatchers.IO) {
-            val fiveDayForecastMap = _locationForecastRepository.getFiveDayForecast(lat,lon)
+            val fiveDayForecast = _locationForecastRepository.getFiveDayForecast(lat,lon)
 
                 _fiveDayUIState.update {
                     it.copy(
-                        forecast = fiveDayForecastMap)
+                        forecast = fiveDayForecast)
                 }
         }
     }

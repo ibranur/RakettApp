@@ -2,7 +2,6 @@ package no.uio.ifi.in2000.team6.rakett_app.ui.home
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,6 +13,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.SafetyReportRepository
 import no.uio.ifi.in2000.team6.rakett_app.ui.cards.DayForecastCard
+import no.uio.ifi.in2000.team6.rakett_app.ui.cards.five
+import java.util.Date
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -87,8 +88,8 @@ fun HomeScreen(
                 verticalArrangement = Arrangement.spacedBy(3.dp)
             )
             {
-                items(fiveDayUIState.forecast.toList()) { (_, fiveday) ->
-                    if (fiveday != null) {
+                items(fiveDayUIState.forecast) { fiveday ->
+                    if (fiveday != null && fiveday == fiveDayUIState.forecast.first()) {
                         DayForecastCard(
                             fiveDay = fiveday,
                             onClick = {}
@@ -96,6 +97,7 @@ fun HomeScreen(
                     }
                 }
             }
+
         }
 
         //Dropdown menu
@@ -126,9 +128,3 @@ fun HomeScreen(
 
 
 
-@Composable
-@Preview(showBackground = true)
-@RequiresApi(Build.VERSION_CODES.O)
-fun HomePreview() {
-    HomeScreen()
-}

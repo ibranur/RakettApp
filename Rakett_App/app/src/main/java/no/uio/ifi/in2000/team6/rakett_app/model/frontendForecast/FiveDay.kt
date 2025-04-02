@@ -11,6 +11,6 @@ data class FiveDay(
         val precipitation_amount_max: Double,
         val precipitation_amount_min: Double,
         val probability_of_precipitation: Double,
-        val symbol_code: String?,
-        val wind_avg: Double? = null,
+        val symbol_code: String,
+        val wind_avg: Double? = null
     )

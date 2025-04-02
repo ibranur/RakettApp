@@ -7,11 +7,13 @@ import no.uio.ifi.in2000.team6.rakett_app.data.fiveDaysFunction
 import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.FiveDay
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecastCompact.DetailsInstant
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecastCompact.Forecast
+import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.HourlyDay
 
 import org.threeten.bp.LocalDate
 import org.threeten.bp.format.DateTimeFormatter
 import java.text.SimpleDateFormat
 import java.util.Locale
+import java.util.Locale.filter
 import java.util.TimeZone
 
 class LocationForecastRepository {
@@ -23,7 +25,7 @@ class LocationForecastRepository {
     }
 
     // New method to get all hourly data points for a specific day without timezone issues
-    suspend fun getHourlyDetailsForDay(lat: Double, lon: Double, date: LocalDate): List<HourlyDetails> {
+    suspend fun getHourlyDetailsForDay(lat: Double, lon: Double, date: LocalDate): List<HourlyDay> {
         val forecast = _locationForecastDatasource.fetchForecast(lat, lon)
             ?: throw Exception("Could not fetch forecast data")
 
@@ -38,14 +40,20 @@ class LocationForecastRepository {
             }
             .map { timeEntry ->
                 val hour = timeEntry.time.substring(11, 13).toInt()
-                HourlyDetails(
-                    hour = hour,
+                HourlyDay(
+                    time = hour,
+                    air_temperature = 0.0,
+                    wind_speed = 0.0,
+                    wind_direction = 0.0,
+                    precipitation_amount_one_hour = 0.0,
+                    symbol_code = "ha",
                     details = timeEntry.data.instant.details,
                     precipDetails = timeEntry.data.next_1_hours?.details,
                     symbolCode = timeEntry.data.next_1_hours?.summary?.symbol_code ?: ""
                 )
+
             }
-            .sortedBy { it.hour }
+            .sortedBy { it.time }
     }
 
     // Keep the original method for backward compatibility
@@ -55,10 +63,10 @@ class LocationForecastRepository {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    suspend fun getFiveDayForecast(lat: Double, longitude: Double): Map<Int,FiveDay?> {
+    suspend fun getFiveDayForecast(lat: Double, longitude: Double): List<FiveDay?> {
         val forecast: Forecast? = _locationForecastDatasource.fetchForecast(lat, longitude)
 
-        if (forecast == null) return emptyMap()
+        if (forecast == null) return emptyList()
 
         return fiveDaysFunction(forecast)
     }
@@ -68,10 +76,3 @@ class LocationForecastRepository {
 
 
 }
-
-data class HourlyDetails(
-    val hour: Int,
-    val details: Details,
-    val precipDetails: no.uio.ifi.in2000.team6.rakett_app.model.LocationForecastCompact.DetailsX?,
-    val symbolCode: String
-)
