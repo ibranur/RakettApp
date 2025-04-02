@@ -2,6 +2,7 @@ package no.uio.ifi.in2000.team6.rakett_app.ui.home
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -16,8 +17,14 @@ import no.uio.ifi.in2000.team6.rakett_app.ui.cards.DayForecastCard
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier) {
-    val viewModel = remember { HomeScreenViewModel(SafetyReportRepository()) }
+fun HomeScreen(
+    modifier: Modifier = Modifier,
+    viewModel: HomeScreenViewModel
+) {
+
+    val temperature by viewModel.temperatureState.collectAsState()
+    val windSpeed by viewModel.windSpeedState.collectAsState()
+    val windDirection by viewModel.windDirectionState.collectAsState()
 
     var latitude by remember { mutableStateOf("59.9139") }
     var longitude by remember { mutableStateOf("10.7522") }

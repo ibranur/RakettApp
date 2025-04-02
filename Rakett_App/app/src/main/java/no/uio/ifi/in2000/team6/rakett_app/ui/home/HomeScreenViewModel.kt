@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.LocationForecastRepository
+import no.uio.ifi.in2000.team6.rakett_app.data.CoordinatesManager
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.SafetyReportRepository
 import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.FiveDayUIState
 
@@ -73,6 +74,12 @@ class HomeScreenViewModel(
         if (!currentList.contains(lat to lon)) {
             currentList.add(lat to lon)
             _savedCoordinates.value = currentList
+
+            // Update shared coordinates
+            CoordinatesManager.updateLocation(lat, lon)
+
+            // Fetch weather data with new coordinates
+            fetchWeatherData(lat, lon)
         }
     }
 }

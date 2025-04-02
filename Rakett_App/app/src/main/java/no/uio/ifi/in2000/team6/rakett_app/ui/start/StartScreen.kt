@@ -1,79 +1,100 @@
 package no.uio.ifi.in2000.team6.rakett_app.ui.start
 
+import StartScreenViewModel
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-
-
-
 import androidx.compose.ui.graphics.Color
-import org.threeten.bp.LocalDate
-import org.threeten.bp.format.DateTimeFormatter
-import java.util.Calendar
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import no.uio.ifi.in2000.team6.rakett_app.ui.cards.DateCard
+import no.uio.ifi.in2000.team6.rakett_app.ui.cards.DateWeatherInfo
+import no.uio.ifi.in2000.team6.rakett_app.ui.cards.GoodTimeWindow
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun StartScreen(modifier: Modifier = Modifier) {
+fun StartScreen(
+    modifier: Modifier = Modifier,
+    viewModel: StartScreenViewModel
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+
     Column(
         modifier = modifier.fillMaxSize().padding(16.dp),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        DatePicker()
+        DateRangePicker(
+            fromDate = uiState.fromDate?.format(uiState.dateFormatter) ?: "Fra dato",
+            toDate = uiState.toDate?.format(uiState.dateFormatter) ?: "Til dato",
+            errorMessage = uiState.errorMessage,
+            selectedDateRangeText = uiState.selectedDateRangeText,
+            onFromDateSelected = viewModel::onFromDateSelected,
+            onToDateSelected = viewModel::onToDateSelected
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        when {
+            isLoading -> {
+                CircularProgressIndicator(
+                    modifier = Modifier.padding(16.dp)
+                )
+                Text("Henter værdata...", modifier = Modifier.padding(8.dp))
+            }
+            uiState.error != null -> {
+                Text(
+                    text = uiState.error!!,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+            uiState.weatherData.isNotEmpty() -> {
+                LazyColumn {
+                    items(uiState.weatherData) { dateInfo ->
+                        DateCard(
+                            weatherInfo = dateInfo,
+                            onClick = { /* Handle click */ }
+                        )
+                    }
+                }
+            }
+            uiState.fromDate != null && uiState.toDate != null && uiState.errorMessage == null -> {
+                Text("Ingen værdata tilgjengelig for valgt periode")
+            }
+        }
     }
 }
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DatePicker(
-    onDateRangeSelected: (from: LocalDate, to: LocalDate) -> Unit = { _, _ -> }
+fun DateRangePicker(
+    fromDate: String,
+    toDate: String,
+    errorMessage: String?,
+    selectedDateRangeText: String,
+    onFromDateSelected: (Long?) -> Unit,
+    onToDateSelected: (Long?) -> Unit
 ) {
-    var fromDate by remember { mutableStateOf<LocalDate?>(null) }
-    var toDate by remember { mutableStateOf<LocalDate?>(null) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
-
-    val dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
-
-    // Tilstander for datovelgere
     var showFromDatePicker by remember { mutableStateOf(false) }
     var showToDatePicker by remember { mutableStateOf(false) }
 
-    // Datovelger-tilstander
     val fromDatePickerState = rememberDatePickerState()
     val toDatePickerState = rememberDatePickerState()
 
-    // Kaller onDateRangeSelected automatisk når begge datoer er gyldige
-    LaunchedEffect(fromDate, toDate, errorMessage) {
-        if (fromDate != null && toDate != null && errorMessage == null) {
-            onDateRangeSelected(fromDate!!, toDate!!)
-        }
-    }
-
-    // Fra-dato velgerdialog
+    // From date picker dialog
     if (showFromDatePicker) {
         DatePickerDialog(
             onDismissRequest = { showFromDatePicker = false },
             confirmButton = {
                 TextButton(onClick = {
-                    // Konverter millisekunder til LocalDate
-                    fromDatePickerState.selectedDateMillis?.let { millis ->
-                        val calendar = Calendar.getInstance()
-                        calendar.timeInMillis = millis
-                        val year = calendar.get(Calendar.YEAR)
-                        val month = calendar.get(Calendar.MONTH) + 1
-                        val day = calendar.get(Calendar.DAY_OF_MONTH)
-                        fromDate = LocalDate.of(year, month, day)
-
-                        // Valider datoer
-                        if (toDate != null && fromDate!!.isAfter(toDate)) {
-                            errorMessage = "Fra-dato kan ikke være etter til-dato"
-                        } else {
-                            errorMessage = null
-                        }
-                    }
+                    onFromDateSelected(fromDatePickerState.selectedDateMillis)
                     showFromDatePicker = false
                 }) {
                     Text("OK")
@@ -85,32 +106,18 @@ fun DatePicker(
                 }
             }
         ) {
-            DatePicker(state = fromDatePickerState)
+            // Use Material3's DatePicker component (not our function)
+            androidx.compose.material3.DatePicker(state = fromDatePickerState)
         }
     }
 
-    // Til-dato velgerdialog
+    // To date picker dialog
     if (showToDatePicker) {
         DatePickerDialog(
             onDismissRequest = { showToDatePicker = false },
             confirmButton = {
                 TextButton(onClick = {
-                    // Konverter millisekunder til LocalDate
-                    toDatePickerState.selectedDateMillis?.let { millis ->
-                        val calendar = Calendar.getInstance()
-                        calendar.timeInMillis = millis
-                        val year = calendar.get(Calendar.YEAR)
-                        val month = calendar.get(Calendar.MONTH) + 1
-                        val day = calendar.get(Calendar.DAY_OF_MONTH)
-                        toDate = LocalDate.of(year, month, day)
-
-                        // Valider datoer
-                        if (fromDate != null && fromDate!!.isAfter(toDate)) {
-                            errorMessage = "Til-dato kan ikke være før fra-dato"
-                        } else {
-                            errorMessage = null
-                        }
-                    }
+                    onToDateSelected(toDatePickerState.selectedDateMillis)
                     showToDatePicker = false
                 }) {
                     Text("OK")
@@ -122,27 +129,25 @@ fun DatePicker(
                 }
             }
         ) {
-            DatePicker(state = toDatePickerState)
+            // Use Material3's DatePicker component (not our function)
+            androidx.compose.material3.DatePicker(state = toDatePickerState)
         }
     }
 
     Column(modifier = Modifier.padding(16.dp)) {
-        Text(
-            text = "Go-vindu"
-        )
-        // Datovelgerknapper
+        Text(text = "Go-vindu")
+
+        // Date picker buttons
         Row {
             Button(
                 onClick = { showFromDatePicker = true },
                 modifier = Modifier.weight(1f),
-                colors = ButtonColors(
-                    contentColor = Color.Black,
+                colors = ButtonDefaults.buttonColors(
                     containerColor = Color.LightGray,
-                    disabledContainerColor = Color.LightGray,
-                    disabledContentColor = Color.LightGray
+                    contentColor = Color.Black
                 )
             ) {
-                Text(fromDate?.format(dateFormatter) ?: "Fra dato")
+                Text(fromDate)
             }
 
             Spacer(modifier = Modifier.width(8.dp))
@@ -150,18 +155,16 @@ fun DatePicker(
             Button(
                 onClick = { showToDatePicker = true },
                 modifier = Modifier.weight(1f),
-                colors = ButtonColors(
-                    contentColor = Color.Black,
+                colors = ButtonDefaults.buttonColors(
                     containerColor = Color.LightGray,
-                    disabledContainerColor = Color.LightGray,
-                    disabledContentColor = Color.LightGray
+                    contentColor = Color.Black
                 )
             ) {
-                Text(toDate?.format(dateFormatter) ?: "Til dato")
+                Text(toDate)
             }
         }
 
-        // Feilmelding
+        // Error message
         errorMessage?.let {
             Text(
                 text = it,
@@ -170,10 +173,10 @@ fun DatePicker(
             )
         }
 
-        // Visning av valgt periode (når begge datoer er gyldige)
-        if (fromDate != null && toDate != null && errorMessage == null) {
+        // Selected date range display
+        if (selectedDateRangeText.isNotEmpty()) {
             Text(
-                text = "Valgt periode: ${fromDate!!.format(dateFormatter)} - ${toDate!!.format(dateFormatter)}",
+                text = selectedDateRangeText,
                 modifier = Modifier.padding(top = 8.dp)
             )
         }
