@@ -62,7 +62,7 @@ fun DayForecastCard(
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.SpaceAround
             ){
-                    WeatherRatingIndicator(8.8)
+                    WeatherRatingIndicator(8)
 
                 }
             }

@@ -61,7 +61,7 @@ fun DateCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(text = weatherInfo.date, style = MaterialTheme.typography.titleMedium)
-                WeatherRatingIndicator(weatherInfo.weatherScore)
+                WeatherRatingIndicator(weatherInfo.weatherScore.toInt())
             }
 
             Spacer(modifier = Modifier.height(8.dp))

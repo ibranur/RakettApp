@@ -137,7 +137,8 @@ fun nextFourHours(forecast: Forecast): List<FourHour> {
                         probability_of_precipitation = it.data.next_1_hours.details.probability_of_precipitation,
                         probability_of_thunder = it.data.next_1_hours.details.probability_of_thunder
                     ),
-                hour = "${toCET(it.time).hour}:00"
+                hour = "${toCET(it.time).hour}:00",
+                symbol_code = it.data.next_1_hours.summary.symbol_code
                 
             )}
 
@@ -145,8 +146,10 @@ fun nextFourHours(forecast: Forecast): List<FourHour> {
 
 }
 
-fun ScoreHour(fourHour: FourHour): Double {
+fun ScoreHour(fourHour: FourHour): Int {
     var score = 10.0 // Start with perfect score
+
+
 
     // Wind conditions (most critical)
     score -= when {
@@ -182,9 +185,12 @@ fun ScoreHour(fourHour: FourHour): Double {
         score -= 2.0
     }
 
-    return score.coerceIn(0.0, 10.0)
+    return score.coerceIn(0.0, 10.0).toInt()
 }
 
+fun ScoreCalculator(fourHour:FourHour) {
+
+}
 //Vindhastighet finnes bare i Instant-modellen. Funksjonen tar gjennomsnittet av alle vindverdiene pr dag
 @RequiresApi(Build.VERSION_CODES.O)
 fun WindSpeedAvg(forecast: Forecast): Map<Int, Double>{

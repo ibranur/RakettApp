@@ -7,5 +7,6 @@ data class FourHour(
     val detailsInstant: DetailsInstant,
     val detailsNext1Hour: DetailsNext1Hour,
     val hour: String,
+    val symbol_code: String
 
 )
