@@ -31,6 +31,7 @@ class LocationForecastDatasource {
             }
         } catch (e: UnknownHostException) {
             Log.e(TAG, "Kunne ikke koble til API: ${e.message}\"")
+
             null
         } catch (e: Exception) {
             Log.e(TAG, "En uventet feil oppstod: ${e.message}")
