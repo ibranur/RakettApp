@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import no.uio.ifi.in2000.team6.rakett_app.ui.cards.CoordCard
 
 @Composable
 fun TestScreen(state: LaunchPointState,
@@ -45,31 +46,10 @@ fun TestScreen(state: LaunchPointState,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(state.launchPoints) { launchPoint ->
-                Row(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(
-                            text = launchPoint.latitude.toString(),
-                            fontSize = 20.sp
-                        )
-                        Text(
-                            text = launchPoint.longitude.toString(),
-                            fontSize = 20.sp
-                        )
-                    }
-                    IconButton(onClick = {
-                        onEvent(LaunchPointEvent.DeleteLaunchPoint(launchPoint))
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "Delete launch point"
-                        )
-                    }
-
-                }
+                CoordCard(
+                    launchPoint = launchPoint,
+                    onClick = onEvent
+                )
             }
         }
     }

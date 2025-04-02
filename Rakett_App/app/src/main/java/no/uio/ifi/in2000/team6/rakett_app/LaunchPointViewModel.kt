@@ -37,18 +37,22 @@ class LaunchPointViewModel(
                 longitude = event.longitude
             )
             }
+            is LaunchPointEvent.setName -> _state.update { it.copy(
+                name = event.name
+            ) }
             LaunchPointEvent.saveLaunchPoint -> {
                 val latitudeStr = state.value.latitude
                 val longitudeStr = state.value.longitude
 
                 val latitude = latitudeStr.toDoubleOrNull() ?: 0.0
                 val longitude = longitudeStr.toDoubleOrNull() ?: 0.0
+                val name = state.value.name
 
-
-                if (latitude != null && longitude != null) {
+                if (name != null) {
                     val launchPoint = LaunchPoint(
                         latitude = latitude,
-                        longitude = longitude
+                        longitude = longitude,
+                        name = name
                     )
 
 
@@ -59,7 +63,8 @@ class LaunchPointViewModel(
                         it.copy(
                             isAddingLaunchPoint = false,
                             latitude = "",
-                            longitude = ""
+                            longitude = "",
+                            name = ""
                         )
                     }
                 }

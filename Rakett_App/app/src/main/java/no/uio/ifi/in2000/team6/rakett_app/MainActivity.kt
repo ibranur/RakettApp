@@ -21,8 +21,9 @@ class MainActivity : ComponentActivity() {
         Room.databaseBuilder(
             applicationContext,
             LaunchPointDatabase::class.java,
-            "launchPoints.db"
-        ).build()
+            "launchPoints.db")
+            .fallbackToDestructiveMigration()
+            .build()
     }
 
 

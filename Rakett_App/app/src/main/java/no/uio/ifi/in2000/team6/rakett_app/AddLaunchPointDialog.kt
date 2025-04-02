@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.material3.Text
@@ -14,50 +16,61 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddLaunchPointDialog(
     state: LaunchPointState,
     onEvent: (LaunchPointEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    AlertDialog(
+    BasicAlertDialog(
         modifier = modifier,
         onDismissRequest = {
             onEvent(LaunchPointEvent.HideDialog)
         },
-        title = { Text(text = "Add launchpoint") },
-        text = {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+        content = { AlertContent(state,onEvent)}
+    )
+
+}
+
+
+@Composable
+fun AlertContent(state: LaunchPointState,
+                 onEvent: (LaunchPointEvent) -> Unit,) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        TextField(value = state.latitude,
+            onValueChange = { newText ->
+                onEvent(LaunchPointEvent.setLatitude(newText))
+            },
+            placeholder = {Text(text = "Latitude")}
+        )
+        TextField(value = state.longitude,
+            onValueChange = { newText ->
+                onEvent(LaunchPointEvent.setLongitude(newText))
+            },
+            placeholder = {Text(text = "Longitude")}
+        )
+        TextField(value = state.name,
+            onValueChange = { newText ->
+                onEvent(LaunchPointEvent.setName(newText))
+            },
+            placeholder = {Text(text = "Name")}
+        )
+
+        Box(modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
             ) {
-                TextField(value = state.latitude.toString(),
-                    onValueChange = { newText ->
-                        onEvent(LaunchPointEvent.setLatitude(newText))
-                    },
-                    placeholder = {Text(text = "Latitude")}
-                )
-                TextField(value = state.longitude.toString(),
-                    onValueChange = { newText ->
-                        onEvent(LaunchPointEvent.setLongitude(newText))
-                    },
-                    placeholder = {Text(text = "Longitude")}
-                )
-            }
-        },
-        confirmButton = {
-            Box(modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.CenterEnd
-                ) {
-                Button(
-                    onClick = {
-                        onEvent(LaunchPointEvent.saveLaunchPoint)
-                    }
-                ) {
-                    Text(text = "Save launchpoint")
+            Button(
+                onClick = {
+                    onEvent(LaunchPointEvent.saveLaunchPoint)
                 }
+            ) {
+                Text(text = "Save launchpoint")
             }
         }
-    )
+    }
 }
 
 

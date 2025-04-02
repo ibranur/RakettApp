@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey
 data class LaunchPoint(
     val latitude: Double,
     val longitude: Double,
+    val name: String,
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0
 )

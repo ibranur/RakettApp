@@ -4,6 +4,7 @@ sealed interface LaunchPointEvent {
     object saveLaunchPoint: LaunchPointEvent
     data class setLatitude(val latitude: String): LaunchPointEvent
     data class setLongitude(val longitude: String): LaunchPointEvent
+    data class setName(val name: String): LaunchPointEvent
     data class DeleteLaunchPoint(val launchPoint: LaunchPoint): LaunchPointEvent
     object ShowDialog: LaunchPointEvent
     object HideDialog: LaunchPointEvent
