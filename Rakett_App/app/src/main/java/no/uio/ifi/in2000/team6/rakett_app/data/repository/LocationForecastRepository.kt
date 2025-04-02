@@ -4,9 +4,11 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import no.uio.ifi.in2000.team6.rakett_app.data.LocationForecastDatasource
 import no.uio.ifi.in2000.team6.rakett_app.data.fiveDaysFunction
+import no.uio.ifi.in2000.team6.rakett_app.data.nextFourHours
 import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.FiveDay
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecastCompact.DetailsInstant
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecastCompact.Forecast
+import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.FourHour
 import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.HourlyDay
 
 import org.threeten.bp.LocalDate
@@ -54,6 +56,16 @@ class LocationForecastRepository {
 
             }
             .sortedBy { it.time }
+    }
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    suspend fun getNextFourHourForecast(latitude: Double, longitude: Double): List<FourHour> {
+        val forecast: Forecast? = _locationForecastDatasource.fetchForecast(latitude, longitude)
+
+        if (forecast == null) return emptyList()
+
+        return nextFourHours(forecast)
     }
 
     // Keep the original method for backward compatibility

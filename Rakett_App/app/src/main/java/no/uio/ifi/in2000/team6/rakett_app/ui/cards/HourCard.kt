@@ -17,8 +17,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import no.uio.ifi.in2000.team6.rakett_app.data.ScoreHour
 import no.uio.ifi.in2000.team6.rakett_app.R
+import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecastCompact.DetailsInstant
+import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.FourHour
 import no.uio.ifi.in2000.team6.rakett_app.ui.Rating.WeatherRatingIndicator
 
 // --- Data Classes ---
@@ -46,14 +48,12 @@ data class HourWeatherInfo(
 
 @Composable
 fun HourCard(
-    weatherInfo: HourWeatherInfo,
-    onClick: () -> Unit
+    fourHour: FourHour,
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clickable { onClick() },
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),
@@ -67,32 +67,59 @@ fun HourCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = weatherInfo.hour,
+                    text = fourHour.hour,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
-                WeatherRatingIndicator(weatherInfo.weatherScore)
+                WeatherRatingIndicator(ScoreHour(fourHour))
             }
             Spacer(modifier = Modifier.height(12.dp))
 
-            DetailedWeatherDisplay(weatherInfo.detailedInfo)
+            //DetailedWeatherDisplay(fourHour)
         }
     }
 }
 
 @Composable
-fun DetailedWeatherDisplay(info: DetailedWeatherInfo) {
-    Column {
+fun HourShortInfo(
+    fourHour: FourHour
+) {
+    Column(
+        modifier = Modifier.padding(16.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = fourHour.hour,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+            WeatherRatingIndicator(ScoreHour(fourHour))
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+    }
+}
+
+@Composable
+fun DetailedWeatherDisplay(fourHour: FourHour) {
+    Column (
+        modifier = Modifier
+            .padding(8.dp)
+    ){
         // Use Rows to create a tabular layout
-        WeatherRow(label = stringResource(R.string.wind_speed), value = info.windSpeed)
-        WeatherRow(label = stringResource(R.string.wind_gust), value = info.windGust)
-        WeatherRow(label = stringResource(R.string.wind_direction), value = info.windDirection)
-        WeatherRow(label = stringResource(R.string.precipitation), value = info.precipitation)
-        WeatherRow(label = stringResource(R.string.cloud_cover), value = info.cloudCover)
-        WeatherRow(label = stringResource(R.string.humidity), value = info.humidity)
-        WeatherRow(label = stringResource(R.string.thunder_probability), value = info.thunderProbability)
-        WeatherRow(label = stringResource(R.string.air_pressure), value = info.airPressure)
-        WeatherRow(label = stringResource(R.string.air_temperature), value = info.airTemperature)
+        WeatherRow(label = stringResource(R.string.wind_speed), value = "${fourHour.detailsInstant.wind_speed} m/s")
+        WeatherRow(label = stringResource(R.string.wind_gust), value = "${fourHour.detailsInstant.wind_speed_of_gust} m/s")
+        WeatherRow(label = stringResource(R.string.wind_direction), value = "${fourHour.detailsInstant.wind_from_direction} °")
+        WeatherRow(label = stringResource(R.string.precipitation), value = "${fourHour.detailsNext1Hour.precipitation_amount} mm")
+        WeatherRow(label = stringResource(R.string.cloud_cover), value = "${fourHour.detailsInstant.cloud_area_fraction} %")
+        WeatherRow(label = stringResource(R.string.humidity), value = "${fourHour.detailsInstant.relative_humidity.toInt()} %")
+        WeatherRow(label = stringResource(R.string.thunder_probability), value = "${fourHour.detailsNext1Hour.probability_of_thunder.toInt()} %")
+        WeatherRow(label = stringResource(R.string.air_pressure), value = "${fourHour.detailsInstant.air_pressure_at_sea_level} hPa")
+        WeatherRow(label = stringResource(R.string.air_temperature), value = "${fourHour.detailsInstant.air_temperature} °C")
+        WeatherRow(label = stringResource(R.string.dew_point), value = "${fourHour.detailsInstant.dew_point_temperature} °C")
     }
 }
 
@@ -111,24 +138,3 @@ fun WeatherRow(label: String, value: String) {
 
 // --- Preview ---
 
-@Preview(showBackground = true)
-@Composable
-fun HourCardPreview() {
-    val dummyInfo = DetailedWeatherInfo(
-        windSpeed = "5 m/s",
-        windGust = "8 m/s",
-        windDirection = "180° (South)",
-        precipitation = "0 mm",
-        cloudCover = "20%",
-        humidity = "60%",
-        thunderProbability = "5%",
-        airPressure = "1015 hPa",
-        airTemperature = "22°C"
-    )
-    val dummyWeatherInfo = HourWeatherInfo(
-        hour = "14:00",
-        weatherScore = 7.2,
-        detailedInfo = dummyInfo
-    )
-    HourCard(weatherInfo = dummyWeatherInfo) {}
-}

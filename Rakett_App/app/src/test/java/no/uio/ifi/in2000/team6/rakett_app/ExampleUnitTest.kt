@@ -4,6 +4,7 @@ import kotlinx.coroutines.runBlocking
 import no.uio.ifi.in2000.team6.rakett_app.data.GribDataSource
 import no.uio.ifi.in2000.team6.rakett_app.data.LocationForecastDatasource
 import no.uio.ifi.in2000.team6.rakett_app.data.fiveDaysFunction
+import no.uio.ifi.in2000.team6.rakett_app.data.nextFourHours
 import no.uio.ifi.in2000.team6.rakett_app.data.windShear
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.GribRepository
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.LocationForecastRepository
@@ -113,6 +114,21 @@ class ExampleUnitTest {
 
         }
     }
-    
+
+
+    @Test
+    fun NextFourHour() {
+
+        val lat = 59.9138
+        val long = 10.7522
+        val locationForecastDS = LocationForecastDatasource()
+        val rep = LocationForecastRepository()
+
+
+        runBlocking {
+            nextFourHours(locationForecastDS.fetchForecast(lat, long)!!).forEach{println(it)}
+        }
+    }
+
 
 }

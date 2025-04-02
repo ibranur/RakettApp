@@ -14,6 +14,7 @@ import no.uio.ifi.in2000.team6.rakett_app.data.repository.LocationForecastReposi
 import no.uio.ifi.in2000.team6.rakett_app.data.CoordinatesManager
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.SafetyReportRepository
 import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.FiveDayUIState
+import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.FourHourUIState
 
 class HomeScreenViewModel(
     private val repository: SafetyReportRepository
@@ -38,6 +39,10 @@ class HomeScreenViewModel(
 
     val fiveDayUIState =  _fiveDayUIState.asStateFlow()
 
+    private val _fourHourUIState = MutableStateFlow(FourHourUIState())
+
+    val fourHourUIState =  _fourHourUIState.asStateFlow()
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun getFiveDayForecast(lat: Double, lon: Double) {
@@ -48,6 +53,19 @@ class HomeScreenViewModel(
                     it.copy(
                         forecast = fiveDayForecast)
                 }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun getFourHourForecast(latitude: Double, longitude: Double) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val fourHourForecast = _locationForecastRepository.getNextFourHourForecast(latitude,longitude)
+
+            _fourHourUIState.update {
+                it.copy(
+                    list = fourHourForecast
+                )
+            }
         }
     }
 

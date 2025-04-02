@@ -1,5 +1,6 @@
 package no.uio.ifi.in2000.team6.rakett_app.ui.home
 
+import HourCard
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
@@ -13,6 +14,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.SafetyReportRepository
 import no.uio.ifi.in2000.team6.rakett_app.ui.cards.DayForecastCard
+import no.uio.ifi.in2000.team6.rakett_app.ui.cards.ExpandableCard
 import no.uio.ifi.in2000.team6.rakett_app.ui.cards.five
 import java.util.Date
 
@@ -36,9 +38,12 @@ fun HomeScreen(
 
     //weather forecast
     val fiveDayUIState by viewModel.fiveDayUIState.collectAsState()
+    val fourHourUIState by viewModel.fourHourUIState.collectAsState()
 
     Column(
-        modifier = modifier.fillMaxSize().padding(16.dp),
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -64,7 +69,7 @@ fun HomeScreen(
             Button(onClick = {
                 val lat = latitude.toDoubleOrNull() ?: 59.9139
                 val lon = longitude.toDoubleOrNull() ?: 10.7522
-                viewModel.getFiveDayForecast(lat,lon)
+                viewModel.getFourHourForecast(lat,lon)
             }) {
                 Text("Get Weather")
             }
@@ -88,11 +93,10 @@ fun HomeScreen(
                 verticalArrangement = Arrangement.spacedBy(3.dp)
             )
             {
-                items(fiveDayUIState.forecast) { fiveday ->
-                    if (fiveday != null && fiveday == fiveDayUIState.forecast.first()) {
-                        DayForecastCard(
-                            fiveDay = fiveday,
-                            onClick = {}
+                items(fourHourUIState.list) { fourHour ->
+                    if (fourHour != null) {
+                        ExpandableCard(
+                            fourHour = fourHour,
                         )
                     }
                 }
