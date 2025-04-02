@@ -38,26 +38,30 @@ class LaunchPointViewModel(
             )
             }
             LaunchPointEvent.saveLaunchPoint -> {
-                val latitude = state.value.latitude
-                val longitude = state.value.longitude
+                val latitudeStr = state.value.latitude
+                val longitudeStr = state.value.longitude
 
-                if (latitude == 0.0 || longitude == 0.0) {
-                    return
-                }
+                val latitude = latitudeStr.toDoubleOrNull() ?: 0.0
+                val longitude = longitudeStr.toDoubleOrNull() ?: 0.0
 
-                val launchPoint = LaunchPoint(
-                    latitude = latitude,
-                    longitude = longitude
-                )
 
-                viewModelScope.launch {
-                    dao.upsertLaunchPoint(launchPoint)
-                }
-                _state.update { it.copy(
-                    isAddingLaunchPoint = false,
-                    latitude = 0.0,
-                    longitude = 0.0
-                )
+                if (latitude != null && longitude != null) {
+                    val launchPoint = LaunchPoint(
+                        latitude = latitude,
+                        longitude = longitude
+                    )
+
+
+                    viewModelScope.launch {
+                        dao.upsertLaunchPoint(launchPoint)
+                    }
+                    _state.update {
+                        it.copy(
+                            isAddingLaunchPoint = false,
+                            latitude = "",
+                            longitude = ""
+                        )
+                    }
                 }
             }
 

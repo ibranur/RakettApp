@@ -2,8 +2,8 @@ package no.uio.ifi.in2000.team6.rakett_app
 
 sealed interface LaunchPointEvent {
     object saveLaunchPoint: LaunchPointEvent
-    data class setLatitude(val latitude: Double): LaunchPointEvent
-    data class setLongitude(val longitude: Double): LaunchPointEvent
+    data class setLatitude(val latitude: String): LaunchPointEvent
+    data class setLongitude(val longitude: String): LaunchPointEvent
     data class DeleteLaunchPoint(val launchPoint: LaunchPoint): LaunchPointEvent
     object ShowDialog: LaunchPointEvent
     object HideDialog: LaunchPointEvent

@@ -31,14 +31,14 @@ fun AddLaunchPointDialog(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 TextField(value = state.latitude.toString(),
-                    onValueChange = {
-                        onEvent(LaunchPointEvent.setLatitude(it.toDouble()))
+                    onValueChange = { newText ->
+                        onEvent(LaunchPointEvent.setLatitude(newText))
                     },
                     placeholder = {Text(text = "Latitude")}
                 )
                 TextField(value = state.longitude.toString(),
-                    onValueChange = {
-                        onEvent(LaunchPointEvent.setLongitude(it.toDouble()))
+                    onValueChange = { newText ->
+                        onEvent(LaunchPointEvent.setLongitude(newText))
                     },
                     placeholder = {Text(text = "Longitude")}
                 )
