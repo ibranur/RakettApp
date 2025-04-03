@@ -3,14 +3,13 @@ package no.uio.ifi.in2000.team6.rakett_app.data.repository
 import android.os.Build
 import androidx.annotation.RequiresApi
 import no.uio.ifi.in2000.team6.rakett_app.data.LocationForecastDatasource
-import no.uio.ifi.in2000.team6.rakett_app.data.fiveDaysFunction
-import no.uio.ifi.in2000.team6.rakett_app.data.nextFourHours
-import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.FiveDay
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecast.DetailsInstant
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecast.Forecast
+import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.FiveDay
 import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.FourHour
 import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.HourlyDay
-
+import no.uio.ifi.in2000.team6.rakett_app.utils.fiveDaysFunction
+import no.uio.ifi.in2000.team6.rakett_app.utils.nextFourHours
 import org.threeten.bp.LocalDate
 import org.threeten.bp.format.DateTimeFormatter
 import java.text.SimpleDateFormat
@@ -81,9 +80,6 @@ class LocationForecastRepository {
 
         return fiveDaysFunction(forecast)
     }
-
-
-
 
 
 }

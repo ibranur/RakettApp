@@ -40,7 +40,7 @@ fun SavedLocationScreen(
     Scaffold(
         topBar = {
             TopBar(
-                title = "Oppskytningssteder",
+                title = "Lagrede oppskytningssteder",
                 isEmpty = state.launchPoints.isEmpty(),
                 actions = {
                     IconButton(onClick = { /* Help or info action */ }) {

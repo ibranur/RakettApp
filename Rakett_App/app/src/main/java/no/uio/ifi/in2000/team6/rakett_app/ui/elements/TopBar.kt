@@ -42,7 +42,7 @@ fun TopBar(
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
                         text = title,
-                        style = MaterialTheme.typography.headlineLarge,
+                        style = MaterialTheme.typography.headlineSmall,
                         textAlign = TextAlign.Center
                     )
                 },

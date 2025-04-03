@@ -1,8 +1,9 @@
 package no.uio.ifi.in2000.team6.rakett_app.data.repository
 
 import kotlinx.coroutines.flow.Flow
-import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPoint
 import no.uio.ifi.in2000.team6.rakett_app.data.dao.LaunchPointDao
+import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPoint
+
 
 interface LaunchPointRepositoryInterface {
     fun getAllLaunchPoints(): Flow<List<LaunchPoint>>

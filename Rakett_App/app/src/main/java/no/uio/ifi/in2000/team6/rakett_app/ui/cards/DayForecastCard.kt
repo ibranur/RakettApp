@@ -23,9 +23,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import no.uio.ifi.in2000.team6.rakett_app.data.getDrawableIdByName
 import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.FiveDay
 import no.uio.ifi.in2000.team6.rakett_app.ui.Rating.WeatherRatingIndicator
+import no.uio.ifi.in2000.team6.rakett_app.utils.getDrawableIdByName
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -57,26 +57,26 @@ fun DayForecastCard(
             DayIconDegrees(fiveDay)
             WeatherInfoDay(fiveDay)
 
-            Column (
+            Column(
                 modifier = Modifier.fillMaxHeight(),
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.SpaceAround
-            ){
-                    WeatherRatingIndicator(8)
+            ) {
+                WeatherRatingIndicator(8)
 
-                }
             }
         }
     }
+}
 
 @Composable
 fun WeatherInfoDay(
     fiveDay: FiveDay,
 ) {
-    Column (
+    Column(
         modifier = Modifier.fillMaxHeight(),
         verticalArrangement = Arrangement.Center
-    ){
+    ) {
         ValueAndUnit(value = "${fiveDay.wind_avg}", unit = "m/s")
         ValueAndUnit(value = "${fiveDay.precipitation_amount}", unit = "mm")
     }
@@ -88,20 +88,25 @@ fun WeatherInfoDay(
 fun DayIconDegrees(
     fiveDay: FiveDay,
 ) {
-    Column (
+    Column(
         horizontalAlignment = Alignment.CenterHorizontally
-    ){
+    ) {
 
         Text(text = fiveDay.formattedTime, style = MaterialTheme.typography.titleMedium)
         val image = getDrawableIdByName(LocalContext.current, fiveDay.symbol_code)
-        Row (
+        Row(
 
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
                 painter = painterResource(image),
-                contentDescription = "hei")
-            Text(text = "${fiveDay.air_temperature_max}°", style = MaterialTheme.typography.titleMedium, fontSize = 29.sp)
+                contentDescription = "hei"
+            )
+            Text(
+                text = "${fiveDay.air_temperature_max}°",
+                style = MaterialTheme.typography.titleMedium,
+                fontSize = 29.sp
+            )
         }
 
     }
@@ -110,13 +115,14 @@ fun DayIconDegrees(
 
 @Composable
 fun ValueAndUnit(value: String, unit: String) {
-    Row (
+    Row(
         verticalAlignment = Alignment.Bottom
     ) {
         Text(text = value)
         Text(text = unit, fontSize = 5.sp)
     }
 }
+
 @RequiresApi(Build.VERSION_CODES.O)
 val five: FiveDay = FiveDay(
     time = ZonedDateTime.now(),
@@ -127,10 +133,10 @@ val five: FiveDay = FiveDay(
     precipitation_amount_min = 0.0,
     probability_of_precipitation = 0.0,
     symbol_code = "fair_day",
-    formattedTime = ZonedDateTime.now().format(DateTimeFormatter.ofPattern("EEEE, d. MMMM", Locale.ENGLISH)),
+    formattedTime = ZonedDateTime.now()
+        .format(DateTimeFormatter.ofPattern("EEEE, d. MMMM", Locale.ENGLISH)),
     wind_avg = 3.2
 )
-
 
 
 @RequiresApi(Build.VERSION_CODES.O)

@@ -15,8 +15,10 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -24,12 +26,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPointEvent
-import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPointState
-import no.uio.ifi.in2000.team6.rakett_app.ui.saved.SavedLocationScreen
+import no.uio.ifi.in2000.team6.rakett_app.data.Database.AppDatabase
+import no.uio.ifi.in2000.team6.rakett_app.data.repository.LaunchPointRepository
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.SafetyReportRepository
 import no.uio.ifi.in2000.team6.rakett_app.ui.home.HomeScreen
 import no.uio.ifi.in2000.team6.rakett_app.ui.home.HomeScreenViewModel
+import no.uio.ifi.in2000.team6.rakett_app.ui.saved.SavedLocationScreen
+import no.uio.ifi.in2000.team6.rakett_app.ui.saved.SavedLocationViewModel
 import no.uio.ifi.in2000.team6.rakett_app.ui.start.StartScreen
 
 sealed class Screen(val route: String, val label: String) {
@@ -40,23 +43,31 @@ sealed class Screen(val route: String, val label: String) {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun Navigation(state: LaunchPointState,
-               onEvent: (LaunchPointEvent) -> Unit) {
+fun Navigation() {
     val navController = rememberNavController()
+    val context = LocalContext.current
 
-    //Opprette repos og viewmodels
+    // Create repositories
     val safetyReportRepository = SafetyReportRepository()
+    val launchPointDao = AppDatabase.getDatabase(context).launchPointDao()
+    val launchPointRepository = LaunchPointRepository(launchPointDao)
+
+    // Create ViewModels
     val homeScreenViewModel = HomeScreenViewModel(safetyReportRepository)
     val startScreenViewModel = StartScreenViewModel(safetyReportRepository)
+    val savedLocationViewModel = SavedLocationViewModel(launchPointRepository)
 
-    //Kaller getFourHour.. funksjonen for punktet som er lagret.
-    if (state.launchPoints.isNotEmpty()) {
-        val selectedPoint = state.launchPoints.find { it.selected }
+    // Get state from SavedLocationViewModel
+    val savedLocationState by savedLocationViewModel.state.collectAsState()
+
+    // Check selected point for forecasts
+    if (savedLocationState.launchPoints.isNotEmpty()) {
+        val selectedPoint = savedLocationState.launchPoints.find { it.selected }
         val latitude = selectedPoint?.latitude
         val longitude = selectedPoint?.longitude
         if (latitude != null && longitude != null) {
-            homeScreenViewModel.getFourHourForecast(latitude,longitude)
-            homeScreenViewModel.updateSelectedLocation(state)
+            homeScreenViewModel.getFourHourForecast(latitude, longitude)
+            homeScreenViewModel.updateSelectedLocation(savedLocationState)
         }
     }
 
@@ -75,10 +86,9 @@ fun Navigation(state: LaunchPointState,
                     StartScreen(viewModel = startScreenViewModel)
                 }
                 composable(route = Screen.Saved.route) {
-                    //SavedLocationScreen()
                     SavedLocationScreen(
-                        state = state,
-                        onEvent = onEvent
+                        state = savedLocationState,
+                        onEvent = savedLocationViewModel::onEvent
                     )
                 }
             }
@@ -102,9 +112,20 @@ fun BottomNavigationBar(navController: NavController) {
             NavigationBarItem(
                 icon = {
                     when (screen) {
-                        Screen.Home -> Icon(Icons.Default.LocationOn, contentDescription = screen.label)
-                        Screen.Start -> Icon(Icons.Default.RocketLaunch, contentDescription = screen.label)
-                        Screen.Saved -> Icon(Icons.Default.Favorite, contentDescription = screen.label)
+                        Screen.Home -> Icon(
+                            Icons.Default.LocationOn,
+                            contentDescription = screen.label
+                        )
+
+                        Screen.Start -> Icon(
+                            Icons.Default.RocketLaunch,
+                            contentDescription = screen.label
+                        )
+
+                        Screen.Saved -> Icon(
+                            Icons.Default.Favorite,
+                            contentDescription = screen.label
+                        )
                     }
                 },
                 label = { Text(screen.label) },
