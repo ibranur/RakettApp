@@ -26,6 +26,7 @@ import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPointEvent
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPointState
 import no.uio.ifi.in2000.team6.rakett_app.ui.saved.SavedLocationScreen
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.SafetyReportRepository
+import no.uio.ifi.in2000.team6.rakett_app.ui.home.GribViewModel
 import no.uio.ifi.in2000.team6.rakett_app.ui.home.HomeScreen
 import no.uio.ifi.in2000.team6.rakett_app.ui.home.HomeScreenViewModel
 import no.uio.ifi.in2000.team6.rakett_app.ui.start.StartScreen
@@ -36,6 +37,7 @@ sealed class Screen(val route: String, val label: String) {
     data object Saved : Screen("saved", "Lagret")
 }
 
+
 @Composable
 fun Navigation(state: LaunchPointState,
                onEvent: (LaunchPointEvent) -> Unit) {
@@ -45,6 +47,7 @@ fun Navigation(state: LaunchPointState,
     val safetyReportRepository = SafetyReportRepository()
     val homeScreenViewModel = HomeScreenViewModel(safetyReportRepository)
     val startScreenViewModel = StartScreenViewModel(safetyReportRepository)
+    val gribViewModel = GribViewModel()  // Legg til denne linjen
 
     //Kaller getFourHour.. funksjonen for punktet som er lagret.
     if (state.launchPoints.isNotEmpty()) {
@@ -53,6 +56,7 @@ fun Navigation(state: LaunchPointState,
         val longitude = selectedPoint?.longitude
         if (latitude != null && longitude != null) {
             homeScreenViewModel.getFourHourForecast(latitude,longitude)
+            gribViewModel.fetchGribData(latitude,longitude)  // Legg til denne linjen
             homeScreenViewModel.updateSelectedLocation(state)
         }
     }
@@ -66,7 +70,10 @@ fun Navigation(state: LaunchPointState,
                 startDestination = Screen.Home.route
             ) {
                 composable(route = Screen.Home.route) {
-                    HomeScreen(viewModel = homeScreenViewModel)
+                    HomeScreen(
+                        viewModel = homeScreenViewModel,
+                        gribViewModel = gribViewModel  // Legg til denne parameteren
+                    )
                 }
                 composable(route = Screen.Start.route) {
                     StartScreen(viewModel = startScreenViewModel)
@@ -82,6 +89,8 @@ fun Navigation(state: LaunchPointState,
         }
     }
 }
+
+// Resten av Navigation.kt forblir uendret
 
 @Composable
 fun BottomNavigationBar(navController: NavController) {
