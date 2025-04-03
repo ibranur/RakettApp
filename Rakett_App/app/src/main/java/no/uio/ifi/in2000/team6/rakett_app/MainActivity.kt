@@ -12,6 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.room.Room
+import com.jakewharton.threetenabp.AndroidThreeTen
 import no.uio.ifi.in2000.team6.rakett_app.data.Database.LaunchPointDatabase
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.LaunchPointRepository
 import no.uio.ifi.in2000.team6.rakett_app.ui.Navigation
@@ -44,6 +45,7 @@ class MainActivity : ComponentActivity() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
+        AndroidThreeTen.init(this)
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
