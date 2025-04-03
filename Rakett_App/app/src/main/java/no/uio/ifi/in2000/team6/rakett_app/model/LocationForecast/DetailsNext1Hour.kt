@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.team6.rakett_app.model.LocationForecast;
+package no.uio.ifi.in2000.team6.rakett_app.model.LocationForecast
 import kotlinx.serialization.Serializable
 
 @Serializable
