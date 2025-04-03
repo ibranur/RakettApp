@@ -17,6 +17,8 @@ import androidx.compose.ui.unit.sp
 import no.uio.ifi.in2000.team6.rakett_app.ui.saved.SavedLocationDropdownMenu
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPoint
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPointEvent
+import androidx.compose.ui.tooling.preview.Preview
+
 
 @Composable
 fun CoordCard(
@@ -62,4 +64,23 @@ fun CoordCard(
         }
 
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CoordCardPreview() {
+    // Sample LaunchPoint data
+    val sampleLaunchPoint = LaunchPoint(
+        latitude = 59.9139,
+        longitude = 10.7522,
+        name = "Oslo",
+        selected = false,
+        id = 1
+    )
+
+    // Preview the CoordCard with sample data
+    CoordCard(
+        launchPoint = sampleLaunchPoint,
+        onClick = { /* No action needed for preview */ }
+    )
 }
