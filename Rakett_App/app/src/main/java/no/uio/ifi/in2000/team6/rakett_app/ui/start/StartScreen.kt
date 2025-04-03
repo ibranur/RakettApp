@@ -16,7 +16,7 @@ import no.uio.ifi.in2000.team6.rakett_app.ui.cards.DateCard
 import no.uio.ifi.in2000.team6.rakett_app.ui.cards.DateWeatherInfo
 import no.uio.ifi.in2000.team6.rakett_app.ui.cards.GoodTimeWindow
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
 fun StartScreen(
     modifier: Modifier = Modifier,

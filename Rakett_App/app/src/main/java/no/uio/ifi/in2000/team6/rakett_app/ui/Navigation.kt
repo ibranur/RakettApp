@@ -1,8 +1,6 @@
 package no.uio.ifi.in2000.team6.rakett_app.ui
 
 import StartScreenViewModel
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -38,7 +36,6 @@ sealed class Screen(val route: String, val label: String) {
     data object Saved : Screen("saved", "Lagret")
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun Navigation(state: LaunchPointState,
                onEvent: (LaunchPointEvent) -> Unit) {

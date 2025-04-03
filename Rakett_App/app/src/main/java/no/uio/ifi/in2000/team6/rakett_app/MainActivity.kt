@@ -1,12 +1,10 @@
 package no.uio.ifi.in2000.team6.rakett_app
 
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.ViewModel
@@ -42,14 +40,12 @@ class MainActivity : ComponentActivity() {
     )
 
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             Rakett_AppTheme {
                 val state by viewModel.state.collectAsState()
-//                TestScreen(state = state, onEvent = viewModel::onEvent)
                 Navigation(state = state, onEvent = viewModel::onEvent)
             }
             }

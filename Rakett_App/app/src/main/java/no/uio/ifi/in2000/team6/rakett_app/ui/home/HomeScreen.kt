@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.team6.rakett_app.data.getSelectedPoint
 import no.uio.ifi.in2000.team6.rakett_app.ui.cards.ExpandableCard
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,

@@ -31,7 +31,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
 fun DayForecastCard(
     fiveDay: FiveDay,
@@ -83,7 +83,7 @@ fun WeatherInfoDay(
 
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
 fun DayIconDegrees(
     fiveDay: FiveDay,
@@ -117,7 +117,7 @@ fun ValueAndUnit(value: String, unit: String) {
         Text(text = unit, fontSize = 5.sp)
     }
 }
-@RequiresApi(Build.VERSION_CODES.O)
+
 val five: FiveDay = FiveDay(
     time = ZonedDateTime.now(),
     air_temperature_max = 30,
@@ -133,7 +133,7 @@ val five: FiveDay = FiveDay(
 
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Preview(showBackground = true)
 @Composable
 fun CardPreview() {

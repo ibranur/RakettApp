@@ -1,11 +1,8 @@
 package no.uio.ifi.in2000.team6.rakett_app.data.repository
 
-import android.os.Build
-import androidx.annotation.RequiresApi
+
 import no.uio.ifi.in2000.team6.rakett_app.data.LocationForecastDatasource
-import no.uio.ifi.in2000.team6.rakett_app.data.fiveDaysFunction
 import no.uio.ifi.in2000.team6.rakett_app.data.nextFourHours
-import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.FiveDay
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecast.DetailsInstant
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecast.Forecast
 import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.FourHour
@@ -58,30 +55,12 @@ class LocationForecastRepository {
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.O)
     suspend fun getNextFourHourForecast(latitude: Double, longitude: Double): List<FourHour> {
         val forecast: Forecast? = _locationForecastDatasource.fetchForecast(latitude, longitude)
 
         if (forecast == null) return emptyList()
-
         return nextFourHours(forecast)
     }
-
-    // Keep the original method for backward compatibility
-    suspend fun getForecast(lat: Double, longitude: Double): Forecast {
-        return _locationForecastDatasource.fetchForecast(lat, longitude)
-            ?: throw Exception("Could not fetch forecast data")
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    suspend fun getFiveDayForecast(lat: Double, longitude: Double): List<FiveDay?> {
-        val forecast: Forecast? = _locationForecastDatasource.fetchForecast(lat, longitude)
-
-        if (forecast == null) return emptyList()
-
-        return fiveDaysFunction(forecast)
-    }
-
 
 
 

@@ -1,20 +1,16 @@
 package no.uio.ifi.in2000.team6.rakett_app.data
 
 import android.content.Context
-import android.os.Build
-import androidx.annotation.RequiresApi
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPoint
 import no.uio.ifi.in2000.team6.rakett_app.R
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecast.DetailsInstant
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecast.DetailsNext1Hour
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecast.Forecast
-import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.FiveDay
 import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.FourHour
 import no.uio.ifi.in2000.team6.rakett_app.model.grib.GribMap
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 import kotlin.math.cos
 import kotlin.math.pow
 import kotlin.math.roundToInt
@@ -51,7 +47,6 @@ private fun calculateWindShear(grib1: GribMap, grib2: GribMap): Double {
     )
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 fun toCET(date: String): ZonedDateTime {
 
     // Parse the string into a ZonedDateTime object in UTC
@@ -63,53 +58,14 @@ fun toCET(date: String): ZonedDateTime {
     return norwegianTime
 }
 
-
-@RequiresApi(Build.VERSION_CODES.O)
-fun fiveDaysFunction(forecast: Forecast): List<FiveDay?> {
-    val windAvg = WindSpeedAvg(forecast)
-
-    val output: List<FiveDay?> = forecast.properties.timeseries
-        .filter(predicate = { it.time.contains("06:00:00Z") && it.data.next_6_hours != null})
-        .map{
-
-            FiveDay(
-                    time = toCET(it.time), //formattedtime så man får det på formen; Friday, 28. March.
-                    formattedTime = toCET(it.time).format(
-                        DateTimeFormatter.ofPattern(
-                            "EEEE, d. MMMM",
-                            Locale.ENGLISH
-                        )
-                    ),
-                    air_temperature_max = it.data.next_6_hours!!.details.air_temperature_max.toInt(),
-                    air_temperature_min = it.data.next_6_hours.details.air_temperature_min,
-                    precipitation_amount = it.data.next_6_hours.details.precipitation_amount,
-                    precipitation_amount_max = it.data.next_6_hours.details.precipitation_amount_max,
-                    precipitation_amount_min = it.data.next_6_hours.details.precipitation_amount_min,
-                    probability_of_precipitation = it.data.next_6_hours.details.probability_of_precipitation,
-                    symbol_code = it.data.next_12_hours!!.summary.symbol_code,
-                    wind_avg = windAvg[toCET(it.time).dayOfYear]
-                )
-            }
-
-
-
-return output
-}
-
-
-
-@RequiresApi(Build.VERSION_CODES.O)
 fun nextFourHours(forecast: Forecast): List<FourHour> {
-    val currentDay = toCET(forecast.properties.timeseries[0].time).dayOfYear
-    val firstHour = toCET(forecast.properties.timeseries[0].time).hour
-    val lastHour = toCET(forecast.properties.timeseries[0].time).plusHours(3).hour
-    var currentHour = firstHour
-    var output: List<FourHour>
+    val currentDay = toCET(forecast.properties.timeseries[0].time)
+    val listOfHours = listOf<ZonedDateTime>(currentDay,currentDay.plusHours(1),currentDay.plusHours(2),currentDay.plusHours(3))
 
-    output = forecast.properties.timeseries
+
+    val output: List<FourHour> = forecast.properties.timeseries
         .filter(predicate = {
-            toCET(it.time).hour in firstHour .. lastHour && toCET(it.time).dayOfYear == currentDay
-        })
+            toCET(it.time) in listOfHours})
         .map {
             FourHour(
                 detailsInstant=
@@ -139,7 +95,6 @@ fun nextFourHours(forecast: Forecast): List<FourHour> {
                 symbol_code = it.data.next_1_hours.summary.symbol_code
                 
             )}
-
     return output
 
 }
@@ -190,7 +145,7 @@ fun ScoreCalculator(fourHour:FourHour) {
 
 }
 //Vindhastighet finnes bare i Instant-modellen. Funksjonen tar gjennomsnittet av alle vindverdiene pr dag
-@RequiresApi(Build.VERSION_CODES.O)
+
 fun WindSpeedAvg(forecast: Forecast): Map<Int, Double>{
     return forecast.properties.timeseries
         .groupBy(
@@ -210,7 +165,6 @@ fun getDrawableIdByName(context: Context, resourceName: String?): Int {
 }
 
 fun getSelectedPoint(lst: List<LaunchPoint>): String {
-
 
     return try {
         lst.first { it.selected }.name
