@@ -3,6 +3,7 @@ package no.uio.ifi.in2000.team6.rakett_app.data
 import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
+import no.uio.ifi.in2000.team6.rakett_app.LaunchPoint
 import no.uio.ifi.in2000.team6.rakett_app.R
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.HourlyWeatherData
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecastCompact.DetailsInstant
@@ -209,5 +210,15 @@ fun getDrawableIdByName(context: Context, resourceName: String?): Int {
     if (resourceName == null) return R.drawable.notfound
     val drawable = context.resources.getIdentifier(resourceName, "drawable", context.packageName)
     return if (drawable != 0) drawable else R.drawable.notfound
+}
+
+fun getSelectedPoint(lst: List<LaunchPoint>): String {
+
+
+    return try {
+        lst.first { it.selected }.name
+    } catch (e: NoSuchElementException) {
+        ""
+    }
 }
 

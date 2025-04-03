@@ -51,12 +51,14 @@ fun Navigation(state: LaunchPointState,
     val homeScreenViewModel = HomeScreenViewModel(safetyReportRepository)
     val startScreenViewModel = StartScreenViewModel(safetyReportRepository)
 
+    //Kaller getFourHour.. funksjonen for punktet som er lagret.
     if (state.launchPoints.isNotEmpty()) {
         val selectedPoint = state.launchPoints.find { it.selected }
         val latitude = selectedPoint?.latitude
         val longitude = selectedPoint?.longitude
         if (latitude != null && longitude != null) {
             homeScreenViewModel.getFourHourForecast(latitude,longitude)
+            homeScreenViewModel.updateSelectedLocation(state)
         }
     }
 

@@ -12,6 +12,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import no.uio.ifi.in2000.team6.rakett_app.LaunchPointState
+import no.uio.ifi.in2000.team6.rakett_app.data.getSelectedPoint
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.SafetyReportRepository
 import no.uio.ifi.in2000.team6.rakett_app.ui.cards.DayForecastCard
 import no.uio.ifi.in2000.team6.rakett_app.ui.cards.ExpandableCard
@@ -36,6 +38,9 @@ fun HomeScreen(
     var expanded by remember { mutableStateOf(false) }
     val savedCoordinates by viewModel.savedCoordinates.collectAsState()
 
+    val launchPointState by viewModel.launchPointState.collectAsState()
+
+
     //weather forecast
     val fourHourUIState by viewModel.fourHourUIState.collectAsState()
 
@@ -46,6 +51,9 @@ fun HomeScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Text(
+            text = getSelectedPoint(launchPointState.launchPoints)
+        )
         Text(
             text = "Været på bakkenivå de neste 4 timene",
             style = MaterialTheme.typography.headlineSmall,
@@ -70,26 +78,26 @@ fun HomeScreen(
         }
 
         //Dropdown menu
-        Box {
-            Button(onClick = { expanded = true }) {
-                Text("Saved Coordinates")
-            }
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = {expanded = false}
-            ) {
-                savedCoordinates.forEach { coordinate ->
-                    DropdownMenuItem(
-                        text = {Text("${coordinate.first}, ${coordinate.second}")},
-                        onClick = {
-                            latitude = coordinate.first.toString()
-                            longitude = coordinate.second.toString()
-                            expanded = false
-                        }
-                    )
-                }
-            }
-        }
+//        Box {
+//            Button(onClick = { expanded = true }) {
+//                Text("Saved Coordinates")
+//            }
+//            DropdownMenu(
+//                expanded = expanded,
+//                onDismissRequest = {expanded = false}
+//            ) {
+//                savedCoordinates.forEach { coordinate ->
+//                    DropdownMenuItem(
+//                        text = {Text("${coordinate.first}, ${coordinate.second}")},
+//                        onClick = {
+//                            latitude = coordinate.first.toString()
+//                            longitude = coordinate.second.toString()
+//                            expanded = false
+//                        }
+//                    )
+//                }
+//            }
+//        }
     }
 
 

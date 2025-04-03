@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import no.uio.ifi.in2000.team6.rakett_app.LaunchPointState
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.LocationForecastRepository
 import no.uio.ifi.in2000.team6.rakett_app.data.CoordinatesManager
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.SafetyReportRepository
@@ -36,13 +37,15 @@ class HomeScreenViewModel(
 
     private val _locationForecastRepository = LocationForecastRepository()
     private val _fiveDayUIState = MutableStateFlow(FiveDayUIState())
-
     val fiveDayUIState =  _fiveDayUIState.asStateFlow()
 
     private val _fourHourUIState = MutableStateFlow(FourHourUIState())
-
     val fourHourUIState =  _fourHourUIState.asStateFlow()
 
+
+
+    private val _launchPointState = MutableStateFlow(LaunchPointState())
+    val launchPointState = _launchPointState.asStateFlow()
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun getFiveDayForecast(lat: Double, lon: Double) {
@@ -53,6 +56,17 @@ class HomeScreenViewModel(
                     it.copy(
                         forecast = fiveDayForecast)
                 }
+        }
+    }
+
+    fun updateSelectedLocation(state: LaunchPointState) {
+        viewModelScope.launch(Dispatchers.IO) {
+
+            _launchPointState.update {
+                it.copy(
+                    launchPoints = state.launchPoints
+                )
+            }
         }
     }
 
