@@ -26,7 +26,7 @@ fun WeatherRatingIndicator(score: Int) {
         }
         Spacer(modifier = Modifier.size(5.dp))
         Text(
-            text = "Score: $score",
+            text = "Score: $score/10",
             style = MaterialTheme.typography.bodyMedium,
         )
     }
