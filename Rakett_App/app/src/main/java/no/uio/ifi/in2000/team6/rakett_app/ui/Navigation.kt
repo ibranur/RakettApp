@@ -41,27 +41,32 @@ sealed class Screen(val route: String, val label: String) {
     data object Saved : Screen("saved", "Lagret")
 }
 
+/**
+ * Hovednavigasjon for applikasjonen.
+ * Setter opp navigasjonsgraf, ViewModels og databinding.
+ */
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun Navigation() {
     val navController = rememberNavController()
     val context = LocalContext.current
 
-    // Create repositories
+    // Oppretter repositories
     val safetyReportRepository = SafetyReportRepository()
     val launchPointDao = AppDatabase.getDatabase(context).launchPointDao()
     val launchPointRepository = LaunchPointRepository(launchPointDao)
 
-    // Create ViewModels
+    // Oppretter ViewModels
     val homeScreenViewModel = HomeScreenViewModel(safetyReportRepository)
     val startScreenViewModel = StartScreenViewModel(safetyReportRepository)
     val savedLocationViewModel = SavedLocationViewModel(launchPointRepository)
 
-    // Get state from SavedLocationViewModel
+    // Henter tilstand fra SavedLocationViewModel
     val savedLocationState by savedLocationViewModel.state.collectAsState()
 
-    // Check selected point for forecasts
+    // Sjekker valgt punkt for værmeldinger
     if (savedLocationState.launchPoints.isNotEmpty()) {
+        // Oppdaterer værmeldinger for valgt oppskytningspunkt
         val selectedPoint = savedLocationState.launchPoints.find { it.selected }
         val latitude = selectedPoint?.latitude
         val longitude = selectedPoint?.longitude
@@ -96,6 +101,9 @@ fun Navigation() {
     }
 }
 
+/**
+ * Bunnnavigasjonsmeny for applikasjonen.
+ */
 @Composable
 fun BottomNavigationBar(navController: NavController) {
     val items = listOf(
