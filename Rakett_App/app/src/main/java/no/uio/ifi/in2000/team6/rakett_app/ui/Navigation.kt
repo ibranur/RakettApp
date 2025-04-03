@@ -25,6 +25,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import no.uio.ifi.in2000.team6.rakett_app.LaunchPointEvent
+import no.uio.ifi.in2000.team6.rakett_app.LaunchPointState
+import no.uio.ifi.in2000.team6.rakett_app.TestScreen
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.SafetyReportRepository
 import no.uio.ifi.in2000.team6.rakett_app.ui.home.HomeScreen
 import no.uio.ifi.in2000.team6.rakett_app.ui.home.HomeScreenViewModel
@@ -39,7 +42,8 @@ sealed class Screen(val route: String, val label: String) {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun Navigation() {
+fun Navigation(state: LaunchPointState,
+               onEvent: (LaunchPointEvent) -> Unit) {
     val navController = rememberNavController()
 
     //Opprette repos og viewmodels
@@ -47,6 +51,14 @@ fun Navigation() {
     val homeScreenViewModel = HomeScreenViewModel(safetyReportRepository)
     val startScreenViewModel = StartScreenViewModel(safetyReportRepository)
 
+    if (state.launchPoints.isNotEmpty()) {
+        val selectedPoint = state.launchPoints.find { it.selected }
+        val latitude = selectedPoint?.latitude
+        val longitude = selectedPoint?.longitude
+        if (latitude != null && longitude != null) {
+            homeScreenViewModel.getFourHourForecast(latitude,longitude)
+        }
+    }
 
     Scaffold(
         bottomBar = { BottomNavigationBar(navController) }
@@ -63,7 +75,11 @@ fun Navigation() {
                     StartScreen(viewModel = startScreenViewModel)
                 }
                 composable(route = Screen.Saved.route) {
-                    SavedLocationScreen()
+                    //SavedLocationScreen()
+                    TestScreen(
+                        state = state,
+                        onEvent = onEvent
+                    )
                 }
             }
         }

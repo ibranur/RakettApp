@@ -37,7 +37,6 @@ fun HomeScreen(
     val savedCoordinates by viewModel.savedCoordinates.collectAsState()
 
     //weather forecast
-    val fiveDayUIState by viewModel.fiveDayUIState.collectAsState()
     val fourHourUIState by viewModel.fourHourUIState.collectAsState()
 
     Column(
@@ -47,44 +46,10 @@ fun HomeScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Input fields for latitude and longitude
-        TextField(
-            value = latitude,
-            onValueChange = { latitude = it },
-            label = { Text("Latitude") }
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        TextField(
-            value = longitude,
-            onValueChange = { longitude = it },
-            label = { Text("Longitude") }
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Get Weather button
-            Button(onClick = {
-                val lat = latitude.toDoubleOrNull() ?: 59.9139
-                val lon = longitude.toDoubleOrNull() ?: 10.7522
-                viewModel.getFourHourForecast(lat,lon)
-            }) {
-                Text("Get Weather")
-            }
-
-            // Save button
-            OutlinedButton(onClick = {
-                val lat = latitude.toDoubleOrNull()
-                val lon = longitude.toDoubleOrNull()
-                if (lat != null && lon != null) {
-                    viewModel.saveCoordinates(lat, lon)
-                }
-            }) {
-                Text("Save")
-            }
-        }
+        Text(
+            text = "Været på bakkenivå de neste 4 timene",
+            style = MaterialTheme.typography.headlineSmall,
+            modifier = Modifier.padding(horizontal = 40.dp))
         Spacer(modifier = Modifier.height(16.dp))
 
         // Display weather data
