@@ -15,8 +15,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,11 +28,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import no.uio.ifi.in2000.team6.rakett_app.R
+import no.uio.ifi.in2000.team6.rakett_app.data.repository.CalculationRepository
 import no.uio.ifi.in2000.team6.rakett_app.ui.Rating.WeatherRatingIndicator
 
 @Composable
@@ -54,33 +61,198 @@ fun DateCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(text = weatherInfo.date, style = MaterialTheme.typography.titleMedium)
-                WeatherRatingIndicator(weatherInfo.weatherScore)
+                WeatherRatingIndicator(weatherInfo.weatherScore.toInt())
             }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Launch conditions summary
+            LaunchConditionsSummary(weatherInfo)
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = "Beste oppskytningstider:",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold
+            )
+
             Spacer(modifier = Modifier.height(4.dp))
 
             if (weatherInfo.goodTimeWindows.isNotEmpty()) {
-                // 3. Use `items` instead of `itemsIndexed`:  You don't use the index, so
-                //    `items` is more concise and idiomatic.
-                LazyColumn(modifier = Modifier.height(if (weatherInfo.goodTimeWindows.size > 3) 70.dp else Dp.Unspecified)) {
-                    items(weatherInfo.goodTimeWindows) { window ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(text = window.time, fontSize = 14.sp)
-                            Spacer(modifier = Modifier.width(8.dp)) // Add space between time and reasons
-                            ReasonDisplay(reason = window.details)
+                // Use Column for small lists
+                if (weatherInfo.goodTimeWindows.size <= 3) {
+                    Column {
+                        weatherInfo.goodTimeWindows.forEach { window ->
+                            TimeWindowItem(window)
+                            Spacer(modifier = Modifier.height(4.dp))
+                        }
+                    }
+                } else {
+                    // Use LazyColumn with fixed height for larger lists
+                    LazyColumn(modifier = Modifier.height(120.dp)) {
+                        items(weatherInfo.goodTimeWindows) { window ->
+                            TimeWindowItem(window)
+                            Spacer(modifier = Modifier.height(4.dp))
                         }
                     }
                 }
             } else {
-                // 1. Use String Resources
-                Text(text = stringResource(R.string.no_good_time_windows), fontSize = 14.sp)
+                Text(
+                    text = stringResource(R.string.no_good_time_windows),
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.error
+                )
             }
-            Spacer(modifier = Modifier.height(4.dp))
         }
     }
 }
+
+@Composable
+fun LaunchConditionsSummary(weatherInfo: DateWeatherInfo) {
+    // You can extract this data from weatherInfo or pass it separately
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+        ),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(8.dp)) {
+            Text(
+                text = "Dagssammendrag",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            SummaryRow("Vindforhold", if (weatherInfo.weatherScore > 5) "Gunstig" else "Ugunstig")
+            SummaryRow("Score", "${weatherInfo.weatherScore}/10")
+            SummaryRow("Antall vinduer", "${weatherInfo.goodTimeWindows.size}")
+        }
+    }
+}
+
+@Composable
+fun SummaryRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(text = label, fontSize = 12.sp)
+        Text(text = value, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
+fun TimeWindowItem(window: GoodTimeWindow) {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+        ),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(8.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = window.time,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = "View details",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Extract values for altitude calculation if available
+            val airPressure = if (window.details.contains("Pressure:")) {
+                window.details.substringAfter("Pressure:").substringBefore("hPa").trim().toIntOrNull()
+            } else null
+
+            val temperature = if (window.details.contains("Temp:")) {
+                window.details.substringAfter("Temp:").substringBefore("°C").trim().toDoubleOrNull()
+            } else null
+
+            // Calculate altitude if we have the necessary values
+            val altitude = if (airPressure != null && temperature != null) {
+                CalculationRepository.toMeters(airPressure, temperature)
+            } else null
+
+            // Show altitude in UI if calculated
+            if (altitude != null) {
+                Text(
+                    text = "Estimated altitude: ${String.format("%.1f", altitude)} meters",
+                    fontSize = 12.sp,
+                    fontStyle = FontStyle.Italic,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+            }
+
+            // Enhanced ReasonDisplay with multiple conditions
+            EnhancedReasonDisplay(window.details)
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun EnhancedReasonDisplay(details: String) {
+    // Parse the raw details string
+    val reasons = mutableListOf<Reason>()
+
+    // Extract wind information
+    if (details.contains("Wind:")) {
+        val windValue = details.substringAfter("Wind:").substringBefore(",").trim()
+        reasons.add(Reason(ReasonType.WIND, windValue))
+    }
+
+    // Extract temperature
+    if (details.contains("Temp:")) {
+        val tempValue = details.substringAfter("Temp:").substringBefore(",").trim()
+        reasons.add(Reason(ReasonType.TEMPERATURE, tempValue))
+    }
+
+    // Cloud coverage (would be extracted from actual data)
+    if (details.contains("Cloud:")) {
+        val cloudValue = details.substringAfter("Cloud:").substringBefore(",").trim()
+        reasons.add(Reason(ReasonType.CLOUD_COVER, cloudValue))
+    }
+
+    // Add placeholder reasons if real data doesn't have them yet
+    if (!details.contains("Humid:") && !details.contains("Limited")) {
+        reasons.add(Reason(ReasonType.HUMIDITY, "45%"))
+    }
+
+    if (!details.contains("Precip:") && !details.contains("Limited")) {
+        reasons.add(Reason(ReasonType.PRECIPITATION, "0 mm"))
+    }
+
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        reasons.forEach { reason ->
+            Text(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(7.dp))
+                    .background(color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f))
+                    .padding(horizontal = 6.dp, vertical = 3.dp),
+                text = "${getReasionLabel(reason.type)}: ${reason.value}",
+                fontSize = 10.sp,
+                color = MaterialTheme.colorScheme.onPrimary
+            )
+        }
+    }
+}
+
 
 @Preview(showBackground = true)
 @Composable
@@ -129,5 +301,18 @@ fun ReasonDisplay(reason: String) {
                 )
             }
         }
+    }
+}
+@Composable
+private fun getReasionLabel(type: ReasonType): String {
+    return when (type) {
+        ReasonType.WIND -> stringResource(R.string.reason_wind)
+        ReasonType.PRECIPITATION -> stringResource(R.string.reason_precipitation)
+        ReasonType.CLOUD_COVER -> stringResource(R.string.reason_cloud_cover)
+        ReasonType.HUMIDITY -> stringResource(R.string.reason_humidity)
+        ReasonType.THUNDER -> stringResource(R.string.reason_thunder)
+        ReasonType.CLEAR_SKY -> stringResource(R.string.reason_clear_sky)
+        ReasonType.TEMPERATURE -> "Temp"
+        else -> ""
     }
 }

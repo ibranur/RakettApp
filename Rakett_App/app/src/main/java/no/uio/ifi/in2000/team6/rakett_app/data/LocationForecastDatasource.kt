@@ -12,7 +12,7 @@ class LocationForecastDatasource {
     private val TAG = "LocationForecastDatasource" // Tag for Logcat
 
     suspend fun fetchForecast(latitude: Double, longitude: Double): Forecast? {
-        val apiUrl = "https://in2000.api.met.no/weatherapi/locationforecast/2.0/compact"
+        val apiUrl = "https://in2000.api.met.no/weatherapi/locationforecast/2.0/complete"
         val url = "$apiUrl?lat=$latitude&lon=$longitude"
 
         Log.d(TAG, "Henter data fra: $url")
@@ -31,6 +31,7 @@ class LocationForecastDatasource {
             }
         } catch (e: UnknownHostException) {
             Log.e(TAG, "Kunne ikke koble til API: ${e.message}\"")
+
             null
         } catch (e: Exception) {
             Log.e(TAG, "En uventet feil oppstod: ${e.message}")

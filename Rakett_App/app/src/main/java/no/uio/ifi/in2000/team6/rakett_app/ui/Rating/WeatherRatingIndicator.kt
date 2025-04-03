@@ -13,10 +13,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun WeatherRatingIndicator(score: Double) {
+fun WeatherRatingIndicator(score: Int) {
     val scoreColor = when {
-        score >= 8.0 -> Color.Green
-        score >= 6.0 -> Color.Yellow
+        score >= 8-> Color.Green
+        score >= 6 -> Color.Yellow
         else -> Color.Red
     }
 

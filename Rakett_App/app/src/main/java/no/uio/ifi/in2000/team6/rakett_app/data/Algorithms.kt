@@ -1,16 +1,25 @@
-package no.uio.ifi.in2000.team6.rakett_app.data.converter
+package no.uio.ifi.in2000.team6.rakett_app.data
 
+import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
-import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecastCompact.Data
+import no.uio.ifi.in2000.team6.rakett_app.R
+import no.uio.ifi.in2000.team6.rakett_app.data.repository.HourlyWeatherData
+import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecastCompact.DetailsInstant
+import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecastCompact.DetailsNext1Hour
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecastCompact.Forecast
+import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.FiveDay
+import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.FourHour
+import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.HourlyDay
 import no.uio.ifi.in2000.team6.rakett_app.model.grib.GribMap
+import java.time.DayOfWeek
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import java.time.temporal.TemporalUnit
+import java.util.Locale
 import kotlin.math.cos
 import kotlin.math.pow
+import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 
@@ -45,7 +54,7 @@ private fun calculateWindShear(grib1: GribMap, grib2: GribMap): Double {
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-fun convertToNorwegianTime(date: String): ZonedDateTime {
+fun toCET(date: String): ZonedDateTime {
 
     // Parse the string into a ZonedDateTime object in UTC
     val utcDateTime = ZonedDateTime.parse(date, DateTimeFormatter.ISO_DATE_TIME)
@@ -56,32 +65,149 @@ fun convertToNorwegianTime(date: String): ZonedDateTime {
     return norwegianTime
 }
 
-data class Test(
-    val time: Int,
-    val air_temperature: Double,
-    val wind_speed: Double,
-    val wind_direction: Double,
-
-)
 
 @RequiresApi(Build.VERSION_CODES.O)
-fun nextFiveDaysSummary(forecast: Forecast): Map<Int,List<Test>> {
-    val today = ZonedDateTime.now(ZoneId.of("Europe/Oslo"))
+fun fiveDaysFunction(forecast: Forecast): List<FiveDay?> {
+    val windAvg = WindSpeedAvg(forecast)
 
-    var temp = today
-    val output: Map<Int,List<Test>> = forecast.properties.timeseries
-        .filter(predicate = {convertToNorwegianTime(it.time).hour in 8..20})
-        .groupBy(
-            keySelector = {convertToNorwegianTime(it.time).dayOfYear},
-            valueTransform = {
-                Test(
-                    time = convertToNorwegianTime(it.time).hour,
-                    air_temperature = it.data.instant.details.air_temperature,
-                    wind_speed = it.data.instant.details.wind_speed,
-                    wind_direction = it.data.instant.details.wind_from_direction
+    val output: List<FiveDay?> = forecast.properties.timeseries
+        .filter(predicate = { it.time.contains("06:00:00Z") && it.data.next_6_hours != null})
+        .map{
+
+            FiveDay(
+                    time = toCET(it.time), //formattedtime så man får det på formen; Friday, 28. March.
+                    formattedTime = toCET(it.time).format(
+                        DateTimeFormatter.ofPattern(
+                            "EEEE, d. MMMM",
+                            Locale.ENGLISH
+                        )
+                    ),
+                    air_temperature_max = it.data.next_6_hours!!.details.air_temperature_max.toInt(),
+                    air_temperature_min = it.data.next_6_hours.details.air_temperature_min,
+                    precipitation_amount = it.data.next_6_hours.details.precipitation_amount,
+                    precipitation_amount_max = it.data.next_6_hours.details.precipitation_amount_max,
+                    precipitation_amount_min = it.data.next_6_hours.details.precipitation_amount_min,
+                    probability_of_precipitation = it.data.next_6_hours.details.probability_of_precipitation,
+                    symbol_code = it.data.next_12_hours!!.summary.symbol_code,
+                    wind_avg = windAvg[toCET(it.time).dayOfYear]
                 )
-        }
-    )
+            }
+
+
+
+return output
+}
+
+
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun nextFourHours(forecast: Forecast): List<FourHour> {
+    val currentDay = toCET(forecast.properties.timeseries[0].time).dayOfYear
+    val firstHour = toCET(forecast.properties.timeseries[0].time).hour
+    val lastHour = toCET(forecast.properties.timeseries[0].time).plusHours(3).hour
+    var currentHour = firstHour
+    var output: List<FourHour>
+
+    output = forecast.properties.timeseries
+        .filter(predicate = {
+            toCET(it.time).hour in firstHour .. lastHour && toCET(it.time).dayOfYear == currentDay
+        })
+        .map {
+            FourHour(
+                detailsInstant=
+                    DetailsInstant(
+                    air_pressure_at_sea_level = it.data.instant.details.air_pressure_at_sea_level,
+                    air_temperature = it.data.instant.details.air_temperature,
+                    cloud_area_fraction = it.data.instant.details.cloud_area_fraction,
+                    cloud_area_fraction_high = it.data.instant.details.cloud_area_fraction_high,
+                    cloud_area_fraction_low = it.data.instant.details.cloud_area_fraction_low,
+                    cloud_area_fraction_medium = it.data.instant.details.cloud_area_fraction_medium,
+                    dew_point_temperature = it.data.instant.details.dew_point_temperature,
+                    fog_area_fraction = it.data.instant.details.fog_area_fraction,
+                    relative_humidity = it.data.instant.details.relative_humidity,
+                    wind_from_direction = it.data.instant.details.wind_from_direction,
+                    wind_speed = it.data.instant.details.wind_speed,
+                    wind_speed_of_gust = it.data.instant.details.wind_speed_of_gust
+                    ),
+                detailsNext1Hour =
+                    DetailsNext1Hour(
+                        precipitation_amount = it.data.next_1_hours?.details!!.precipitation_amount,
+                        precipitation_amount_max = it.data.next_1_hours.details.precipitation_amount_max,
+                        precipitation_amount_min = it.data.next_1_hours.details.precipitation_amount_min,
+                        probability_of_precipitation = it.data.next_1_hours.details.probability_of_precipitation,
+                        probability_of_thunder = it.data.next_1_hours.details.probability_of_thunder
+                    ),
+                hour = "${toCET(it.time).hour}:00",
+                symbol_code = it.data.next_1_hours.summary.symbol_code
+                
+            )}
 
     return output
+
 }
+
+fun ScoreHour(fourHour: FourHour): Int {
+    var score = 10.0 // Start with perfect score
+
+
+
+    // Wind conditions (most critical)
+    score -= when {
+        fourHour.detailsInstant.wind_speed > 10.0 -> 8.0
+        fourHour.detailsInstant.wind_speed > 8.0 -> 6.0
+        fourHour.detailsInstant.wind_speed > 6.0 -> 4.0
+        fourHour.detailsInstant.wind_speed > 4.0 -> 2.0
+        fourHour.detailsInstant.wind_speed > 2.0 -> 0.5
+        else -> 0.0
+    }
+
+    // Precipitation
+    score -= when {
+        fourHour.detailsNext1Hour.precipitation_amount_max > 2.0 -> 4.0
+        fourHour.detailsNext1Hour.precipitation_amount_max > 0.5 -> 2.0
+        fourHour.detailsNext1Hour.precipitation_amount_max > 0.0 -> 1.0
+        else -> 0.0
+    }
+
+    // Cloud cover
+    score -= fourHour.detailsInstant.cloud_area_fraction / 25.0 // 0-4 point reduction
+
+    // Thunder probability (critical for rockets)
+    score -= fourHour.detailsNext1Hour.probability_of_thunder / 10.0 // 0-10 point reduction
+
+    // Temperature effects
+    if (fourHour.detailsInstant.air_temperature < 0 || fourHour.detailsInstant.air_temperature > 30) {
+        score -= 1.0
+    }
+
+    // Wind gust penalties
+    if (fourHour.detailsInstant.wind_speed_of_gust > fourHour.detailsInstant.wind_speed* 1.5) {
+        score -= 2.0
+    }
+
+    return score.coerceIn(0.0, 10.0).toInt()
+}
+
+fun ScoreCalculator(fourHour:FourHour) {
+
+}
+//Vindhastighet finnes bare i Instant-modellen. Funksjonen tar gjennomsnittet av alle vindverdiene pr dag
+@RequiresApi(Build.VERSION_CODES.O)
+fun WindSpeedAvg(forecast: Forecast): Map<Int, Double>{
+    return forecast.properties.timeseries
+        .groupBy(
+            keySelector = { toCET(it.time).dayOfYear},
+            valueTransform = {it.data.instant.details.wind_speed}
+        )
+        .mapValues { (_, values) ->
+            (values.average()*10).roundToInt()/10.0 //runder av til ett desimal
+             }
+}
+
+
+fun getDrawableIdByName(context: Context, resourceName: String?): Int {
+    if (resourceName == null) return R.drawable.notfound
+    val drawable = context.resources.getIdentifier(resourceName, "drawable", context.packageName)
+    return if (drawable != 0) drawable else R.drawable.notfound
+}
+
