@@ -8,6 +8,7 @@ data class LaunchPoint(
     val latitude: Double,
     val longitude: Double,
     val name: String,
+    val selected: Boolean,
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0
 )

@@ -72,5 +72,3 @@ fun AlertContent(state: LaunchPointState,
         }
     }
 }
-
-

@@ -40,6 +40,10 @@ fun TestScreen(state: LaunchPointState,
             AddLaunchPointDialog(state = state, onEvent = onEvent)
         }
 
+        if (state.isUpdatingLaunchPoint) {
+            UpdateDialog(state,onEvent)
+        }
+
         LazyColumn(
             contentPadding = padding,
             modifier = Modifier.fillMaxSize(),
@@ -48,7 +52,7 @@ fun TestScreen(state: LaunchPointState,
             items(state.launchPoints) { launchPoint ->
                 CoordCard(
                     launchPoint = launchPoint,
-                    onClick = onEvent
+                    onClick = onEvent,
                 )
             }
         }

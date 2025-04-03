@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [LaunchPoint::class],
-    version = 2
+    version = 3
 )
 abstract class LaunchPointDatabase: RoomDatabase() {
 

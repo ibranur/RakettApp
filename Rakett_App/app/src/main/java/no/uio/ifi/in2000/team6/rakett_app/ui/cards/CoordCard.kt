@@ -18,8 +18,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import no.uio.ifi.in2000.team6.rakett_app.DropdownMenuWithDetails
 import no.uio.ifi.in2000.team6.rakett_app.LaunchPoint
 import no.uio.ifi.in2000.team6.rakett_app.LaunchPointEvent
+import no.uio.ifi.in2000.team6.rakett_app.LaunchPointState
 
 @Composable
 fun CoordCard(
@@ -30,7 +32,7 @@ fun CoordCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clickable {  },
+            .clickable { },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),
@@ -46,17 +48,22 @@ fun CoordCard(
                 Text(text = "latitude: ${launchPoint.latitude}")
                 Text(text = "longitude: ${launchPoint.longitude}")
             }
-            IconButton(
-                modifier = Modifier.align(Alignment.TopEnd),
-                onClick = {
-                    onClick(LaunchPointEvent.DeleteLaunchPoint(launchPoint))
-                })
-            {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Delete launch point"
-                )
-            }
+//            IconButton(
+//                modifier = Modifier.align(Alignment.TopEnd),
+//                onClick = {
+//                    onClick(LaunchPointEvent.DeleteLaunchPoint(launchPoint))
+//                })
+//            {
+//                Icon(
+//                    imageVector = Icons.Default.Delete,
+//                    contentDescription = "Delete launch point"
+//                )
+//            }
+            DropdownMenuWithDetails(
+                launchPoint,
+                modifier = Modifier.align(Alignment.BottomEnd),
+                onClick = onClick,
+            )
         }
 
     }

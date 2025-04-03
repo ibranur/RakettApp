@@ -6,5 +6,6 @@ data class LaunchPointState(
     val latitude: String = "",
     val longitude: String = "",
     val name: String = "",
-    val isAddingLaunchPoint: Boolean = false
+    val isAddingLaunchPoint: Boolean = false,
+    val isUpdatingLaunchPoint: Boolean = false,
 )

@@ -1,5 +1,6 @@
 package no.uio.ifi.in2000.team6.rakett_app
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,7 +40,14 @@ class LaunchPointViewModel(
             }
             is LaunchPointEvent.setName -> _state.update { it.copy(
                 name = event.name
-            ) }
+            )
+            }
+            is LaunchPointEvent.UpdateLaunchPoint -> viewModelScope.launch {
+                dao.deselectAllLaunchPoints()
+                dao.updateLaunchPoint(event.launchPoint)
+            }
+
+
             LaunchPointEvent.saveLaunchPoint -> {
                 val latitudeStr = state.value.latitude
                 val longitudeStr = state.value.longitude
@@ -52,7 +60,8 @@ class LaunchPointViewModel(
                     val launchPoint = LaunchPoint(
                         latitude = latitude,
                         longitude = longitude,
-                        name = name
+                        name = name,
+                        selected = false
                     )
 
 
@@ -79,6 +88,13 @@ class LaunchPointViewModel(
             LaunchPointEvent.ShowDialog -> {
                 _state.update { it.copy(
                     isAddingLaunchPoint = true
+                ) }
+            }
+
+            LaunchPointEvent.ToggleUpdateDialog -> {
+                _state.update { it.copy(
+                    isUpdatingLaunchPoint = !it.isUpdatingLaunchPoint,
+
                 ) }
             }
         }
