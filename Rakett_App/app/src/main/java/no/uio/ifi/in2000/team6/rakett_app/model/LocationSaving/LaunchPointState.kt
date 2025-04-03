@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.team6.rakett_app
+package no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving
 
 data class LaunchPointState(
 

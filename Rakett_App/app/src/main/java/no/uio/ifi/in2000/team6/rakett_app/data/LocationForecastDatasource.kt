@@ -5,7 +5,7 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
 import no.uio.ifi.in2000.team6.rakett_app.model.APIClient
-import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecastCompact.Forecast
+import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecast.Forecast
 import java.net.UnknownHostException
 
 class LocationForecastDatasource {

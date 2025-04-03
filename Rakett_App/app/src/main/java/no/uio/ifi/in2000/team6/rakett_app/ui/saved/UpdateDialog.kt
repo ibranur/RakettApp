@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.team6.rakett_app
+package no.uio.ifi.in2000.team6.rakett_app.ui.saved
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,13 +13,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPointEvent
+import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPointState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UpdateDialog(state: LaunchPointState, onEvent: (LaunchPointEvent) -> Unit) {
     BasicAlertDialog(
         onDismissRequest = {onEvent(LaunchPointEvent.ToggleUpdateDialog)},
-        content ={ ContentForUpdate(state,onEvent)}
+        content ={ ContentForUpdate(state,onEvent) }
     )
 }
 

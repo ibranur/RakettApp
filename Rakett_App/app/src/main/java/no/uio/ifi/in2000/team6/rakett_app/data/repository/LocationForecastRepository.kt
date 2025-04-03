@@ -6,8 +6,8 @@ import no.uio.ifi.in2000.team6.rakett_app.data.LocationForecastDatasource
 import no.uio.ifi.in2000.team6.rakett_app.data.fiveDaysFunction
 import no.uio.ifi.in2000.team6.rakett_app.data.nextFourHours
 import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.FiveDay
-import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecastCompact.DetailsInstant
-import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecastCompact.Forecast
+import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecast.DetailsInstant
+import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecast.Forecast
 import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.FourHour
 import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.HourlyDay
 
@@ -15,7 +15,6 @@ import org.threeten.bp.LocalDate
 import org.threeten.bp.format.DateTimeFormatter
 import java.text.SimpleDateFormat
 import java.util.Locale
-import java.util.Locale.filter
 import java.util.TimeZone
 
 class LocationForecastRepository {

@@ -12,7 +12,10 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.room.Room
+import no.uio.ifi.in2000.team6.rakett_app.data.Database.LaunchPointDatabase
+import no.uio.ifi.in2000.team6.rakett_app.data.repository.LaunchPointRepository
 import no.uio.ifi.in2000.team6.rakett_app.ui.Navigation
+import no.uio.ifi.in2000.team6.rakett_app.ui.saved.SavedLocationViewModel
 import no.uio.ifi.in2000.team6.rakett_app.ui.theme.Rakett_AppTheme
 
 
@@ -26,12 +29,13 @@ class MainActivity : ComponentActivity() {
             .build()
     }
 
-
-    private val viewModel by viewModels<LaunchPointViewModel>(
+    private val viewModel by viewModels<SavedLocationViewModel>(
         factoryProducer = {
             object : ViewModelProvider.Factory {
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return LaunchPointViewModel(db.dao) as T
+                    // Create repository instance and pass it to ViewModel
+                    val repository = LaunchPointRepository(db.dao)
+                    return SavedLocationViewModel(repository) as T
                 }
             }
         }

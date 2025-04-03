@@ -1,6 +1,5 @@
 package no.uio.ifi.in2000.team6.rakett_app.ui.home
 
-import HourCard
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
@@ -10,15 +9,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import no.uio.ifi.in2000.team6.rakett_app.LaunchPointState
 import no.uio.ifi.in2000.team6.rakett_app.data.getSelectedPoint
-import no.uio.ifi.in2000.team6.rakett_app.data.repository.SafetyReportRepository
-import no.uio.ifi.in2000.team6.rakett_app.ui.cards.DayForecastCard
 import no.uio.ifi.in2000.team6.rakett_app.ui.cards.ExpandableCard
-import no.uio.ifi.in2000.team6.rakett_app.ui.cards.five
-import java.util.Date
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable

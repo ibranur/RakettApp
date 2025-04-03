@@ -9,12 +9,11 @@ import no.uio.ifi.in2000.team6.rakett_app.data.windShear
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.GribRepository
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.LocationForecastRepository
 import no.uio.ifi.in2000.team6.rakett_app.data.toCET
-import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecastCompact.Forecast
+import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecast.Forecast
 import no.uio.ifi.in2000.team6.rakett_app.model.grib.Grib
 import org.junit.Test
 
 import org.junit.Assert.*
-import java.time.DayOfWeek
 
 /**
  * Example local unit test, which will execute on the development machine (host).

@@ -1,10 +1,9 @@
-package no.uio.ifi.in2000.team6.rakett_app
+package no.uio.ifi.in2000.team6.rakett_app.ui.saved
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -14,6 +13,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
+import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPointEvent
+import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPointState
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -28,7 +29,7 @@ fun AddLaunchPointDialog(
         onDismissRequest = {
             onEvent(LaunchPointEvent.HideDialog)
         },
-        content = { AlertContent(state,onEvent)}
+        content = { AlertContent(state,onEvent) }
     )
 
 }

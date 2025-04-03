@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import no.uio.ifi.in2000.team6.rakett_app.LaunchPointState
+import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPointState
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.LocationForecastRepository
 import no.uio.ifi.in2000.team6.rakett_app.data.CoordinatesManager
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.SafetyReportRepository

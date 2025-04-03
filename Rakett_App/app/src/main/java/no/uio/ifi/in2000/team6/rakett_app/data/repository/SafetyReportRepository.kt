@@ -1,10 +1,10 @@
 package no.uio.ifi.in2000.team6.rakett_app.data.repository
 
 
-import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecastCompact.Timesery
+import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecast.Timesery
 import no.uio.ifi.in2000.team6.rakett_app.model.grib.GribMap
 import no.uio.ifi.in2000.team6.rakett_app.model.safetyreport.SafetyReport
-import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecastCompact.Forecast
+import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecast.Forecast
 import org.threeten.bp.Instant
 import org.threeten.bp.LocalDate
 import org.threeten.bp.LocalDateTime

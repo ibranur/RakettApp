@@ -1,5 +1,4 @@
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,12 +18,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.team6.rakett_app.data.ScoreHour
 import no.uio.ifi.in2000.team6.rakett_app.R
 import no.uio.ifi.in2000.team6.rakett_app.data.getDrawableIdByName
-import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecastCompact.DetailsInstant
 import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.FourHour
 import no.uio.ifi.in2000.team6.rakett_app.ui.Rating.WeatherRatingIndicator
 
