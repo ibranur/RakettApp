@@ -1,18 +1,25 @@
 package no.uio.ifi.in2000.team6.rakett_app.ui.home
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import no.uio.ifi.in2000.team6.rakett_app.data.repository.SafetyReportRepository
+import no.uio.ifi.in2000.team6.rakett_app.data.getSelectedPoint
+import no.uio.ifi.in2000.team6.rakett_app.ui.cards.ExpandableCard
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier) {
-    val viewModel = remember { HomeScreenViewModel(SafetyReportRepository()) }
+fun HomeScreen(
+    modifier: Modifier = Modifier,
+    viewModel: HomeScreenViewModel
+) {
+
     val temperature by viewModel.temperatureState.collectAsState()
     val windSpeed by viewModel.windSpeedState.collectAsState()
     val windDirection by viewModel.windDirectionState.collectAsState()
@@ -24,85 +31,70 @@ fun HomeScreen(modifier: Modifier = Modifier) {
     var expanded by remember { mutableStateOf(false) }
     val savedCoordinates by viewModel.savedCoordinates.collectAsState()
 
+    val launchPointState by viewModel.launchPointState.collectAsState()
+
+
+    //weather forecast
+    val fourHourUIState by viewModel.fourHourUIState.collectAsState()
+
     Column(
-        modifier = modifier.fillMaxSize().padding(16.dp),
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Input fields for latitude and longitude
-        TextField(
-            value = latitude,
-            onValueChange = { latitude = it },
-            label = { Text("Latitude") }
+        Text(
+            text = getSelectedPoint(launchPointState.launchPoints)
         )
-        Spacer(modifier = Modifier.height(8.dp))
-        TextField(
-            value = longitude,
-            onValueChange = { longitude = it },
-            label = { Text("Longitude") }
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Get Weather button
-            Button(onClick = {
-                val lat = latitude.toDoubleOrNull() ?: 59.9139
-                val lon = longitude.toDoubleOrNull() ?: 10.7522
-                viewModel.fetchWeatherData(lat, lon)
-            }) {
-                Text("Get Weather")
-            }
-
-            // Save button
-            OutlinedButton(onClick = {
-                val lat = latitude.toDoubleOrNull()
-                val lon = longitude.toDoubleOrNull()
-                if (lat != null && lon != null) {
-                    viewModel.saveCoordinates(lat, lon)
-                }
-            }) {
-                Text("Save")
-            }
-        }
+        Text(
+            text = "Været på bakkenivå de neste 4 timene",
+            style = MaterialTheme.typography.headlineSmall,
+            modifier = Modifier.padding(horizontal = 40.dp))
         Spacer(modifier = Modifier.height(16.dp))
 
         // Display weather data
-        Text(
-            text = "$temperature°C",
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.displayLarge
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "Wind: $windSpeed m/s, Direction: $windDirection°",
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.bodyLarge
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-
-        //Dropdown menu
-        Box {
-            Button(onClick = { expanded = true }) {
-                Text("Saved Coordinates")
-            }
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = {expanded = false}
-            ) {
-                savedCoordinates.forEach { coordinate ->
-                    DropdownMenuItem(
-                        text = {Text("${coordinate.first}, ${coordinate.second}")},
-                        onClick = {
-                            latitude = coordinate.first.toString()
-                            longitude = coordinate.second.toString()
-                            expanded = false
-                        }
-                    )
+        Column {
+            LazyColumn (
+                verticalArrangement = Arrangement.spacedBy(3.dp)
+            )
+            {
+                items(fourHourUIState.list) { fourHour ->
+                    if (fourHour != null) {
+                        ExpandableCard(
+                            fourHour = fourHour,
+                        )
+                    }
                 }
             }
+
         }
+
+        //Dropdown menu
+//        Box {
+//            Button(onClick = { expanded = true }) {
+//                Text("Saved Coordinates")
+//            }
+//            DropdownMenu(
+//                expanded = expanded,
+//                onDismissRequest = {expanded = false}
+//            ) {
+//                savedCoordinates.forEach { coordinate ->
+//                    DropdownMenuItem(
+//                        text = {Text("${coordinate.first}, ${coordinate.second}")},
+//                        onClick = {
+//                            latitude = coordinate.first.toString()
+//                            longitude = coordinate.second.toString()
+//                            expanded = false
+//                        }
+//                    )
+//                }
+//            }
+//        }
     }
+
+
 }
+
+
+

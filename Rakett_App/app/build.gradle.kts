@@ -1,11 +1,9 @@
-import org.gradle.internal.impldep.bsh.commands.dir
-import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.include
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     kotlin("plugin.serialization") version "2.1.10"
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -53,6 +51,9 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation("androidx.room:room-common:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    implementation("com.google.android.material:material:1.12.0")
 //    implementation(libs.androidx.storage)
 //    implementation(libs.androidx.runtime.livedata)
 //    implementation(libs.androidx.navigation.compose)
@@ -84,4 +85,8 @@ dependencies {
 //    implementation(libs.coil.network.okhttp)
     implementation(libs.androidx.navigation.compose)
     implementation("androidx.compose.material:material-icons-extended:1.5.0")
+
+
+    // room
+    ksp("androidx.room:room-compiler:2.5.0")
 }

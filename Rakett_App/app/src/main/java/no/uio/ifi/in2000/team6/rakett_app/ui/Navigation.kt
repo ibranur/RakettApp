@@ -1,5 +1,8 @@
 package no.uio.ifi.in2000.team6.rakett_app.ui
 
+import StartScreenViewModel
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -21,8 +24,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import no.uio.ifi.in2000.team6.rakett_app.ui.home.HomeScreen
+import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPointEvent
+import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPointState
 import no.uio.ifi.in2000.team6.rakett_app.ui.saved.SavedLocationScreen
+import no.uio.ifi.in2000.team6.rakett_app.data.repository.SafetyReportRepository
+import no.uio.ifi.in2000.team6.rakett_app.ui.home.HomeScreen
+import no.uio.ifi.in2000.team6.rakett_app.ui.home.HomeScreenViewModel
 import no.uio.ifi.in2000.team6.rakett_app.ui.start.StartScreen
 
 sealed class Screen(val route: String, val label: String) {
@@ -31,9 +38,27 @@ sealed class Screen(val route: String, val label: String) {
     data object Saved : Screen("saved", "Lagret")
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun Navigation() {
+fun Navigation(state: LaunchPointState,
+               onEvent: (LaunchPointEvent) -> Unit) {
     val navController = rememberNavController()
+
+    //Opprette repos og viewmodels
+    val safetyReportRepository = SafetyReportRepository()
+    val homeScreenViewModel = HomeScreenViewModel(safetyReportRepository)
+    val startScreenViewModel = StartScreenViewModel(safetyReportRepository)
+
+    //Kaller getFourHour.. funksjonen for punktet som er lagret.
+    if (state.launchPoints.isNotEmpty()) {
+        val selectedPoint = state.launchPoints.find { it.selected }
+        val latitude = selectedPoint?.latitude
+        val longitude = selectedPoint?.longitude
+        if (latitude != null && longitude != null) {
+            homeScreenViewModel.getFourHourForecast(latitude,longitude)
+            homeScreenViewModel.updateSelectedLocation(state)
+        }
+    }
 
     Scaffold(
         bottomBar = { BottomNavigationBar(navController) }
@@ -44,13 +69,17 @@ fun Navigation() {
                 startDestination = Screen.Home.route
             ) {
                 composable(route = Screen.Home.route) {
-                    HomeScreen()
+                    HomeScreen(viewModel = homeScreenViewModel)
                 }
                 composable(route = Screen.Start.route) {
-                    StartScreen()
+                    StartScreen(viewModel = startScreenViewModel)
                 }
                 composable(route = Screen.Saved.route) {
-                    SavedLocationScreen()
+                    //SavedLocationScreen()
+                    SavedLocationScreen(
+                        state = state,
+                        onEvent = onEvent
+                    )
                 }
             }
         }

@@ -1,12 +1,15 @@
 package no.uio.ifi.in2000.team6.rakett_app
 
-import android.util.Log
 import kotlinx.coroutines.runBlocking
 import no.uio.ifi.in2000.team6.rakett_app.data.GribDataSource
 import no.uio.ifi.in2000.team6.rakett_app.data.LocationForecastDatasource
-import no.uio.ifi.in2000.team6.rakett_app.data.converter.windShear
+import no.uio.ifi.in2000.team6.rakett_app.data.fiveDaysFunction
+import no.uio.ifi.in2000.team6.rakett_app.data.nextFourHours
+import no.uio.ifi.in2000.team6.rakett_app.data.windShear
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.GribRepository
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.LocationForecastRepository
+import no.uio.ifi.in2000.team6.rakett_app.data.toCET
+import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecast.Forecast
 import no.uio.ifi.in2000.team6.rakett_app.model.grib.Grib
 import org.junit.Test
 
@@ -28,16 +31,44 @@ class ExampleUnitTest {
     @Test
     fun locforecast() {
 
-         val lat = 59.91386880
-         val long = 10.75224540
+        val lat = 59.9138
+        val long = 10.7522
+        val locationForecastDS = LocationForecastDatasource()
+        var forecast: Forecast?
+        runBlocking{forecast = locationForecastDS.fetchForecast(lat, long)}
+
+        if (forecast == null) return
+        println(forecast!!.properties.timeseries
+            .forEach {println(it.data.next_6_hours?.details)}
+        )
+
+//        runBlocking {
+//            hourlyForecastForGivenDay(locationForecastDS.fetchForecast(lat, long)!!, DayOfWeek.FRIDAY)
+//            .forEach {
+//                (key, value) ->
+//                println("$key : $value")
+//            }
+//        }
+    }
+
+    @Test
+    fun testConv() {
+        println(toCET("2025-04-04T06:00:00Z"))
+    }
+    @Test
+    fun summaryFive() {
+
+        val lat = 59.9138
+        val long = 10.7522
         val locationForecastDS = LocationForecastDatasource()
         val rep = LocationForecastRepository()
 
-        var output = ""
-        runBlocking{ output = rep.getForecastTimeInstant(lat,long).toString() }
 
-//        Log.e("TAG",output)
-       println(output)
+        runBlocking {
+            fiveDaysFunction(locationForecastDS.fetchForecast(lat, long)!!).forEach {
+                println(it)
+            }
+        }
     }
 
     @Test
@@ -82,4 +113,21 @@ class ExampleUnitTest {
 
         }
     }
+
+
+    @Test
+    fun NextFourHour() {
+
+        val lat = 59.9138
+        val long = 10.7522
+        val locationForecastDS = LocationForecastDatasource()
+        val rep = LocationForecastRepository()
+
+
+        runBlocking {
+            nextFourHours(locationForecastDS.fetchForecast(lat, long)!!).forEach{println(it)}
+        }
+    }
+
+
 }
