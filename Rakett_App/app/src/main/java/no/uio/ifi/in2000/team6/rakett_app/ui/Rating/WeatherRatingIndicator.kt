@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun WeatherRatingIndicator(score: Int) {
     val scoreColor = when {
-        score >= 8-> Color.Green
+        score >= 8 -> Color.Green
         score >= 6 -> Color.Yellow
         else -> Color.Red
     }
@@ -26,7 +26,7 @@ fun WeatherRatingIndicator(score: Int) {
         }
         Spacer(modifier = Modifier.size(5.dp))
         Text(
-            text = "Score: $score",
+            text = "Score: $score/10",
             style = MaterialTheme.typography.bodyMedium,
         )
     }
