@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import no.uio.ifi.in2000.team6.rakett_app.ui.saved.SavedLocationDropdownMenu
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPoint
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPointEvent
@@ -21,7 +22,8 @@ import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPointEvent
 @Composable
 fun CoordCard(
     launchPoint: LaunchPoint,
-    onClick: (LaunchPointEvent) -> Unit
+    onClick: (LaunchPointEvent) -> Unit,
+    navController: NavController? = null
 ) {
     Card(
         modifier = Modifier
@@ -43,21 +45,10 @@ fun CoordCard(
                 Text(text = "latitude: ${launchPoint.latitude}")
                 Text(text = "longitude: ${launchPoint.longitude}")
             }
-//            IconButton(
-//                modifier = Modifier.align(Alignment.TopEnd),
-//                onClick = {
-//                    onClick(LaunchPointEvent.DeleteLaunchPoint(launchPoint))
-//                })
-//            {
-//                Icon(
-//                    imageVector = Icons.Default.Delete,
-//                    contentDescription = "Delete launch point"
-//                )
-//            }
             SavedLocationDropdownMenu(
-                launchPoint,
+                launchPoint = launchPoint,
                 modifier = Modifier.align(Alignment.BottomEnd),
-                onClick = onClick,
+                onClick = onClick
             )
         }
 

@@ -9,7 +9,7 @@ sealed interface LaunchPointEvent {
     data class UpdateLaunchPoint(val launchPoint: LaunchPoint): LaunchPointEvent
     object ShowDialog: LaunchPointEvent
     object HideDialog: LaunchPointEvent
-    object ToggleUpdateDialog: LaunchPointEvent
-
-//    data class getLaunchPoints(val launchPoints: List<LaunchPoint>): LaunchPointEvent
+    object ShowEditDialog: LaunchPointEvent
+    object HideEditDialog: LaunchPointEvent
+    data class SetCurrentEditLocation(val launchPoint: LaunchPoint): LaunchPointEvent
 }

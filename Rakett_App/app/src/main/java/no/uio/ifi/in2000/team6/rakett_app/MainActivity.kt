@@ -16,11 +16,7 @@ import no.uio.ifi.in2000.team6.rakett_app.ui.Navigation
 import no.uio.ifi.in2000.team6.rakett_app.ui.saved.SavedLocationViewModel
 import no.uio.ifi.in2000.team6.rakett_app.ui.theme.Rakett_AppTheme
 
-
 class MainActivity : ComponentActivity() {
-
-
-
     private val db by lazy {
         Room.databaseBuilder(applicationContext, LaunchPointDatabase::class.java, "launchPoints.db")
             .fallbackToDestructiveMigration()
@@ -39,7 +35,6 @@ class MainActivity : ComponentActivity() {
         }
     )
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -48,6 +43,6 @@ class MainActivity : ComponentActivity() {
                 val state by viewModel.state.collectAsState()
                 Navigation(state = state, onEvent = viewModel::onEvent)
             }
-            }
         }
     }
+}

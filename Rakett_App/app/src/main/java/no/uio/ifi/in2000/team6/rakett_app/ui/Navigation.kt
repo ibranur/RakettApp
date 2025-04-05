@@ -13,6 +13,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
@@ -37,17 +38,18 @@ sealed class Screen(val route: String, val label: String) {
     data object Saved : Screen("saved", "Lagret")
 }
 
-
 @Composable
-fun Navigation(state: LaunchPointState,
-               onEvent: (LaunchPointEvent) -> Unit) {
+fun Navigation(
+    state: LaunchPointState,
+    onEvent: (LaunchPointEvent) -> Unit
+) {
     val navController = rememberNavController()
 
     //Opprette repos og viewmodels
     val safetyReportRepository = SafetyReportRepository()
     val homeScreenViewModel = HomeScreenViewModel(safetyReportRepository)
     val startScreenViewModel = StartScreenViewModel(safetyReportRepository)
-    val gribViewModel = GribViewModel()  // Legg til denne linjen
+    val gribViewModel = GribViewModel()
 
     //Kaller getFourHour.. funksjonen for punktet som er lagret.
     if (state.launchPoints.isNotEmpty()) {
@@ -55,8 +57,18 @@ fun Navigation(state: LaunchPointState,
         val latitude = selectedPoint?.latitude
         val longitude = selectedPoint?.longitude
         if (latitude != null && longitude != null) {
-            homeScreenViewModel.getFourHourForecast(latitude,longitude)
-            gribViewModel.fetchGribData(latitude,longitude)  // Legg til denne linjen
+            homeScreenViewModel.getFourHourForecast(latitude, longitude)
+            gribViewModel.fetchGribData(latitude, longitude)
+            homeScreenViewModel.updateSelectedLocation(state)
+        }
+    }
+
+    // Listen for changes in saved locations
+    LaunchedEffect(state.launchPoints) {
+        val selectedPoint = state.launchPoints.find { it.selected }
+        if (selectedPoint != null) {
+            homeScreenViewModel.getFourHourForecast(selectedPoint.latitude, selectedPoint.longitude)
+            gribViewModel.fetchGribData(selectedPoint.latitude, selectedPoint.longitude)
             homeScreenViewModel.updateSelectedLocation(state)
         }
     }
@@ -72,25 +84,26 @@ fun Navigation(state: LaunchPointState,
                 composable(route = Screen.Home.route) {
                     HomeScreen(
                         viewModel = homeScreenViewModel,
-                        gribViewModel = gribViewModel  // Legg til denne parameteren
+                        gribViewModel = gribViewModel,
+                        navController = navController,
+                        state = state,
+                        onEvent = onEvent
                     )
                 }
                 composable(route = Screen.Start.route) {
                     StartScreen(viewModel = startScreenViewModel)
                 }
                 composable(route = Screen.Saved.route) {
-                    //SavedLocationScreen()
                     SavedLocationScreen(
                         state = state,
-                        onEvent = onEvent
+                        onEvent = onEvent,
+                        navController = navController
                     )
                 }
             }
         }
     }
 }
-
-// Resten av Navigation.kt forblir uendret
 
 @Composable
 fun BottomNavigationBar(navController: NavController) {

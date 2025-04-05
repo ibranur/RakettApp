@@ -26,15 +26,13 @@ import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPointEvent
 fun SavedLocationDropdownMenu(
     launchPoint: LaunchPoint,
     onClick: (LaunchPointEvent) -> Unit,
-    modifier: Modifier) {
+    modifier: Modifier
+) {
     var expanded by remember { mutableStateOf(false) }
 
     Box(
         modifier = modifier
-
     ) {
-
-
         IconButton(onClick = { expanded = !expanded }) {
             Icon(Icons.Default.MoreVert, contentDescription = "More options")
         }
@@ -52,14 +50,17 @@ fun SavedLocationDropdownMenu(
             HorizontalDivider()
 
             // Second section
-
             HorizontalDivider()
 
             // Third section
             DropdownMenuItem(
                 text = { Text("Update") },
                 leadingIcon = { Icon(Icons.Outlined.Build, contentDescription = null) },
-                onClick = { }
+                onClick = {
+                    onClick(LaunchPointEvent.SetCurrentEditLocation(launchPoint))
+                    onClick(LaunchPointEvent.ShowEditDialog)
+                    expanded = false
+                }
             )
             DropdownMenuItem(
                 text = { Text("Delete") },
@@ -74,4 +75,3 @@ fun SavedLocationDropdownMenu(
         }
     }
 }
-
