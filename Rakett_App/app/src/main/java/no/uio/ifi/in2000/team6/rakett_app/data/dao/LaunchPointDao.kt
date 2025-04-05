@@ -8,10 +8,8 @@ import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPoint
 
-
 @Dao
 interface LaunchPointDao {
-
     @Upsert
     suspend fun upsertLaunchPoint(launchPoint: LaunchPoint)
 
