@@ -10,6 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import no.uio.ifi.in2000.team6.rakett_app.model.grib.GribMap
@@ -122,39 +123,53 @@ fun AltitudeWeatherList(
     }
 
     if (gribMaps.isEmpty()) {
-        Box(
-            modifier = modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "Ingen tilgjengelig høydedata - kan kun vise data for Sør-Norge",
-                color = Color.Red,
-                modifier = Modifier.padding(horizontal = 16.dp),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-            )
-        }
+        Text(
+            text = "Ingen tilgjengelig høydedata - kan kun vise data for Sør-Norge",
+            color = Color.Red,
+            modifier = Modifier.padding(horizontal = 16.dp),
+            textAlign = TextAlign.Center
+        )
         return
     }
 
-    val safeWindShearValues = if (windShearValues.size == gribMaps.size - 1) {
-        windShearValues + 0.0
-    } else if (windShearValues.size < gribMaps.size) {
-        windShearValues + List(gribMaps.size - windShearValues.size) { 0.0 }
+    // Create pairs of grib data and wind shear values
+    val adjustedWindShearValues = if (windShearValues.size < gribMaps.size - 1) {
+        // Pad wind shear values if there are too few
+        windShearValues + List(gribMaps.size - 1 - windShearValues.size) { 0.0 }
+    } else if (gribMaps.size > 1) {
+        // Trim wind shear values if there are too many
+        windShearValues.take((gribMaps.size - 1).coerceAtLeast(0))
     } else {
-        windShearValues.take(gribMaps.size)
+        emptyList()
     }
 
+    // The last grib map has no wind shear (since it's calculated between layers)
+    val displayItems = gribMaps.mapIndexed { index, gribMap ->
+        val windShear = if (index < adjustedWindShearValues.size) adjustedWindShearValues[index] else 0.0
+        Pair(gribMap, windShear)
+    }
+
+    // Important: Set a fixed height for the LazyColumn to resolve the infinite height constraint error
     LazyColumn(
-        modifier = modifier,
+        modifier = modifier.height(300.dp),
         contentPadding = PaddingValues(horizontal = 8.dp),
         verticalArrangement = Arrangement.spacedBy(3.dp)
     ) {
-        items(gribMaps.zip(safeWindShearValues)) { (gribMap, windShear) ->
+        items(displayItems) { pair ->
+            val gribMap = pair.first
+            val windShear = pair.second
+
+            // Safe defaults in case of NaN or invalid values
+            val safeAltitude = if (gribMap.altitude.isNaN()) 0 else gribMap.altitude.roundToInt()
+            val safeWindSpeed = if (gribMap.wind_speed.isNaN()) 0 else gribMap.wind_speed.roundToInt()
+            val safeWindDirection = if (gribMap.wind_direction.isNaN()) 0 else gribMap.wind_direction.roundToInt()
+            val safeWindShear = if (windShear.isNaN()) 0.0 else windShear
+
             AltitudeWeatherCard(
-                altitude = gribMap.altitude.roundToInt(),
-                windSpeed = gribMap.wind_speed.roundToInt(),
-                windDirection = gribMap.wind_direction.roundToInt(),
-                windShear = windShear
+                altitude = safeAltitude,
+                windSpeed = safeWindSpeed,
+                windDirection = safeWindDirection,
+                windShear = safeWindShear
             )
         }
     }
@@ -179,12 +194,22 @@ fun AltitudeWeatherSection(
             )
         }
 
-        // Only one error message should be shown - prefer the one from the ViewModel
-        AltitudeWeatherList(
-            modifier = Modifier.fillMaxWidth(),
-            gribMaps = gribMaps,
-            windShearValues = windShearValues,
-            isLoading = isLoading
-        )
+        // Only show error message if provided and no GRIB data is available
+        if (!errorMessage.isNullOrEmpty() && gribMaps.isEmpty() && !isLoading) {
+            Text(
+                text = errorMessage,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(8.dp),
+                textAlign = TextAlign.Center
+            )
+        } else {
+            // Pass along the GRIB data for display
+            AltitudeWeatherList(
+                modifier = Modifier.fillMaxWidth(),
+                gribMaps = gribMaps,
+                windShearValues = windShearValues,
+                isLoading = isLoading
+            )
+        }
     }
 }
