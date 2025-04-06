@@ -30,17 +30,33 @@ fun toMeters(hPa: Int, temp: Double): Double {
 }
 
 fun windShear(gribList: List<GribMap>): List<Double> {
-    var output = emptyList<Double>()
+    // If there aren't at least 2 elements, we can't calculate shear
+    if (gribList.size < 2) return emptyList()
 
-    for (i in gribList.indices) {
-        if (i == gribList.size - 1) break
-        output = output.plus(calculateWindShear(gribList[i], gribList[i+1]))
+    val output = mutableListOf<Double>()
+
+    // Calculate shear between each adjacent pair
+    for (i in 0 until gribList.size - 1) {
+        try {
+            val shear = calculateWindShear(gribList[i], gribList[i+1])
+            output.add(shear)
+        } catch (e: Exception) {
+            // If calculation fails, add 0.0 as a fallback
+            output.add(0.0)
+        }
     }
+
     return output
 }
 
 private fun calculateWindShear(grib1: GribMap, grib2: GribMap): Double {
+    // Handle invalid wind speeds
+    if (grib1.wind_speed < 0 || grib2.wind_speed < 0) return 0.0
+
+    // Calculate the change in wind direction (in radians)
     val delta = Math.toRadians(grib2.wind_direction - grib1.wind_direction)
+
+    // Calculate wind shear using vector math
     return sqrt(
         grib1.wind_speed.pow(2) + grib2.wind_speed.pow(2) -
                 2 * grib1.wind_speed * grib2.wind_speed * cos(delta)
@@ -70,18 +86,18 @@ fun nextFourHours(forecast: Forecast): List<FourHour> {
             FourHour(
                 detailsInstant=
                     DetailsInstant(
-                    air_pressure_at_sea_level = it.data.instant.details.air_pressure_at_sea_level,
-                    air_temperature = it.data.instant.details.air_temperature,
-                    cloud_area_fraction = it.data.instant.details.cloud_area_fraction,
-                    cloud_area_fraction_high = it.data.instant.details.cloud_area_fraction_high,
-                    cloud_area_fraction_low = it.data.instant.details.cloud_area_fraction_low,
-                    cloud_area_fraction_medium = it.data.instant.details.cloud_area_fraction_medium,
-                    dew_point_temperature = it.data.instant.details.dew_point_temperature,
-                    fog_area_fraction = it.data.instant.details.fog_area_fraction,
-                    relative_humidity = it.data.instant.details.relative_humidity,
-                    wind_from_direction = it.data.instant.details.wind_from_direction,
-                    wind_speed = it.data.instant.details.wind_speed,
-                    wind_speed_of_gust = it.data.instant.details.wind_speed_of_gust
+                        air_pressure_at_sea_level = it.data.instant.details.air_pressure_at_sea_level,
+                        air_temperature = it.data.instant.details.air_temperature,
+                        cloud_area_fraction = it.data.instant.details.cloud_area_fraction,
+                        cloud_area_fraction_high = it.data.instant.details.cloud_area_fraction_high,
+                        cloud_area_fraction_low = it.data.instant.details.cloud_area_fraction_low,
+                        cloud_area_fraction_medium = it.data.instant.details.cloud_area_fraction_medium,
+                        dew_point_temperature = it.data.instant.details.dew_point_temperature,
+                        fog_area_fraction = it.data.instant.details.fog_area_fraction,
+                        relative_humidity = it.data.instant.details.relative_humidity,
+                        wind_from_direction = it.data.instant.details.wind_from_direction,
+                        wind_speed = it.data.instant.details.wind_speed,
+                        wind_speed_of_gust = it.data.instant.details.wind_speed_of_gust
                     ),
                 detailsNext1Hour =
                     DetailsNext1Hour(
@@ -93,7 +109,7 @@ fun nextFourHours(forecast: Forecast): List<FourHour> {
                     ),
                 hour = "${toCET(it.time).hour}:00",
                 symbol_code = it.data.next_1_hours.summary.symbol_code
-                
+
             )}
     return output
 
@@ -101,8 +117,6 @@ fun nextFourHours(forecast: Forecast): List<FourHour> {
 
 fun ScoreHour(fourHour: FourHour): Int {
     var score = 10.0 // Start with perfect score
-
-
 
     // Wind conditions (most critical)
     score -= when {
@@ -154,7 +168,7 @@ fun WindSpeedAvg(forecast: Forecast): Map<Int, Double>{
         )
         .mapValues { (_, values) ->
             (values.average()*10).roundToInt()/10.0 //runder av til ett desimal
-             }
+        }
 }
 
 
@@ -165,11 +179,9 @@ fun getDrawableIdByName(context: Context, resourceName: String?): Int {
 }
 
 fun getSelectedPoint(lst: List<LaunchPoint>): String {
-
     return try {
         lst.first { it.selected }.name
     } catch (e: NoSuchElementException) {
         ""
     }
 }
-

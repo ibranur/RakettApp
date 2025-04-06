@@ -75,7 +75,6 @@ fun HomeScreen(
 
     // Remember the selected point from state
     val selectedPoint = state?.launchPoints?.find { it.selected }
-
     // Safe data fetching with timeout
     fun safeGribFetch(location: LaunchPoint) {
         isProcessing = true // Disable UI during fetch
@@ -83,11 +82,6 @@ fun HomeScreen(
         scope.launch {
             try {
                 Log.d(tag, "Starting safe GRIB fetch for ${location.name}")
-
-                // Clear existing data
-                withContext(Dispatchers.Main) {
-                    gribViewModel.clearData()
-                }
 
                 // First update the UI to show we selected this location
                 withContext(Dispatchers.Main) {
@@ -98,8 +92,9 @@ fun HomeScreen(
                 delay(100)
 
                 // Now attempt to fetch GRIB data with timeout
-                withTimeoutOrNull(5000) {
+                withTimeoutOrNull(8000) {
                     try {
+                        // Use the improved fetchGribData method
                         gribViewModel.fetchGribData(
                             location.latitude,
                             location.longitude,
@@ -111,12 +106,8 @@ fun HomeScreen(
                         false
                     }
                 } ?: run {
-                    // Timeout occurred
+                    // Timeout occurred, but don't show error just log it
                     Log.w(tag, "GRIB data fetch timed out for ${location.name}")
-                    withContext(Dispatchers.Main) {
-                        showError = true
-                        errorText = "GRIB-data kunne ikke hentes innen tidsgrensen."
-                    }
                 }
 
                 // Get weather forecast separately from GRIB data
@@ -128,10 +119,6 @@ fun HomeScreen(
 
             } catch (e: Exception) {
                 Log.e(tag, "Error in safe fetch: ${e.message}", e)
-                withContext(Dispatchers.Main) {
-                    showError = true
-                    errorText = "Feil ved behandling av data: ${e.message}"
-                }
             } finally {
                 withContext(Dispatchers.Main) {
                     isProcessing = false // Re-enable UI
@@ -399,7 +386,6 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
-                .verticalScroll(scrollState)
         ) {
             // Tittel for bakkenivå
             Text(
