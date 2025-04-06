@@ -11,7 +11,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -63,7 +62,6 @@ fun HomeScreen(
     val windShearValues by gribViewModel.windShearValues.collectAsState()
     val isLoadingGrib by gribViewModel.isLoading.collectAsState()
     val errorMessage by gribViewModel.errorMessage.collectAsState()
-    val gribLocationName by gribViewModel.locationName.collectAsState()
 
     // State for dropdown
     var dropdownExpanded by remember { mutableStateOf(false) }
@@ -72,8 +70,8 @@ fun HomeScreen(
     val selectedPoint = state?.launchPoints?.find { it.selected }
 
     // Debugging location info
-    LaunchedEffect(selectedPoint, gribLocationName) {
-        Log.d(tag, "Current selected point: ${selectedPoint?.name}, GRIB data for: $gribLocationName")
+    LaunchedEffect(selectedPoint) {
+        Log.d(tag, "Current selected point: ${selectedPoint?.name}")
     }
 
     // Sync GRIB data when selected point changes
@@ -341,42 +339,12 @@ fun HomeScreen(
             Column(
                 modifier = Modifier.weight(0.60f)
             ) {
-                // Title row with refresh button
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Været på bakkenivå de neste 4 timene",
-                        style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    // Only show refresh if we have a selected location
-                    if (selectedLocationFromViewModel != null) {
-                        IconButton(
-                            onClick = {
-                                // Refresh data for current location
-                                val location = selectedLocationFromViewModel
-                                if (location != null) {
-                                    Log.d(tag, "Manual refresh for: ${location.name}")
-                                    viewModel.getFourHourForecast(location.latitude, location.longitude)
-                                    gribViewModel.fetchGribData(
-                                        location.latitude,
-                                        location.longitude,
-                                        location.name
-                                    )
-                                }
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Refresh,
-                                contentDescription = "Oppdater data"
-                            )
-                        }
-                    }
-                }
+                // Title row without refresh button
+                Text(
+                    text = "Været på bakkenivå de neste 4 timene",
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.fillMaxWidth()
+                )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -427,34 +395,18 @@ fun HomeScreen(
             }
 
             // Divider to separate the two weather sections
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             // Altitude weather data - takes approximately 40% of available space
             Column(
                 modifier = Modifier.weight(0.40f)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Værdata i høyden nå",
-                        style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.weight(1f)
-                    )
+                Text(
+                    text = "Værdata i høyden nå",
+                    style = MaterialTheme.typography.headlineSmall
+                )
 
-                    // Location name for GRIB data - useful for debugging
-                    if (gribLocationName != null) {
-                        Text(
-                            text = "For: $gribLocationName",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
                 if (selectedLocationFromViewModel == null) {
                     // No location selected

@@ -33,20 +33,31 @@ class GribViewModel : ViewModel() {
     // Track current coordinates
     private val _currentLocation = MutableStateFlow<Pair<Double, Double>?>(null)
 
-    // Keep track of active job to be able to cancel it
-    private var activeJob: Job? = null
-
-    // Location name for debugging
+    // Track the location name for internal use
     private val _locationName = MutableStateFlow<String?>(null)
     val locationName = _locationName.asStateFlow()
 
+    // Keep track of active job to be able to cancel it
+    private var activeJob: Job? = null
+
+    // Flag to prevent duplicate fetching when returning from a different screen
+    private var hasFetchedForCurrentLocation = false
+
     fun fetchGribData(latitude: Double, longitude: Double, locationName: String? = null) {
+        // Check if we're already showing data for this location
+        val currentCoords = _currentLocation.value
+        if (currentCoords != null &&
+            currentCoords.first == latitude &&
+            currentCoords.second == longitude &&
+            hasFetchedForCurrentLocation &&
+            _gribMaps.value.isNotEmpty()) {
+            // We already have data for this location
+            Log.d(tag, "Already showing GRIB data for $locationName, skipping fetch")
+            return
+        }
+
         // Cancel any ongoing job first
         activeJob?.cancel()
-
-        // Immediately clear existing data
-        _gribMaps.value = emptyList()
-        _windShearValues.value = emptyList()
 
         // Store the location name for debugging
         _locationName.value = locationName
@@ -57,7 +68,7 @@ class GribViewModel : ViewModel() {
                 _isLoading.value = true
                 _errorMessage.value = null
 
-                Log.d(tag, "Fetching NEW GRIB data for: $locationName (lat: $latitude, lon: $longitude)")
+                Log.d(tag, "Fetching GRIB data for: $locationName (lat: $latitude, lon: $longitude)")
 
                 // Update current location
                 _currentLocation.value = Pair(latitude, longitude)
@@ -66,9 +77,10 @@ class GribViewModel : ViewModel() {
 
                 if (!gribMapList.isNullOrEmpty()) {
                     val sortedList = gribMapList.sortedBy { it.altitude }
-                    Log.d(tag, "Received NEW GRIB data for $locationName - ${sortedList.size} altitude levels")
+                    Log.d(tag, "Received GRIB data for $locationName - ${sortedList.size} altitude levels")
                     _gribMaps.value = sortedList
                     _windShearValues.value = windShear(sortedList)
+                    hasFetchedForCurrentLocation = true
                 } else {
                     Log.w(tag, "No GRIB data available for $locationName")
                     _errorMessage.value = "Ingen høydedata tilgjengelig for denne lokasjonen"
@@ -87,9 +99,7 @@ class GribViewModel : ViewModel() {
     }
 
     fun clearData() {
-        _gribMaps.value = emptyList()
-        _windShearValues.value = emptyList()
-        _errorMessage.value = null
+        hasFetchedForCurrentLocation = false
         _currentLocation.value = null
         _locationName.value = null
     }

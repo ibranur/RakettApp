@@ -126,7 +126,7 @@ fun AltitudeWeatherList(
             modifier = modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
-            Text(text = "Ingen høydedata tilgjengelig  -  Bare data for Sør-Norge",
+            Text(text = "Ingen tilgjengelig høydedata - kan kun vise data for Sør-Norge",
                 color = Color.Red)
         }
         return
@@ -166,18 +166,11 @@ fun AltitudeWeatherSection(
     title: String = "Værdata i høyden nå"
 ) {
     Column(modifier = modifier) {
-        Text(
-            text = title,
-            modifier = Modifier.padding(bottom = 8.dp).padding(horizontal = 40.dp),
-            style = MaterialTheme.typography.headlineSmall
-        )
-
-        errorMessage?.let {
+        if (title.isNotEmpty()) {
             Text(
-                text = it,
-                color = MaterialTheme.colorScheme.error,
-                fontSize = 14.sp,
-                modifier = Modifier.padding(bottom = 8.dp)
+                text = title,
+                modifier = Modifier.padding(bottom = 8.dp),
+                style = MaterialTheme.typography.headlineSmall
             )
         }
 

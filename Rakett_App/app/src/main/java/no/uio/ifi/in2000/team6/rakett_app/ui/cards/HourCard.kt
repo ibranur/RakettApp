@@ -76,8 +76,6 @@ fun HourCard(
                 WeatherRatingIndicator(ScoreHour(fourHour))
             }
             Spacer(modifier = Modifier.height(12.dp))
-
-            //DetailedWeatherDisplay(fourHour)
         }
     }
 }
@@ -86,8 +84,7 @@ fun HourCard(
 fun HourShortInfo(
     fourHour: FourHour
 ) {
-    Column(
-    ) {
+    Column {
         Row(
             modifier = Modifier.fillMaxWidth().padding(8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -115,7 +112,7 @@ fun HourShortInfo(
 fun DetailedWeatherDisplay(fourHour: FourHour) {
     Column (
         modifier = Modifier
-            .padding(8.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
     ){
         // Use Rows to create a tabular layout
         WeatherRow(label = stringResource(R.string.wind_speed), value = "${fourHour.detailsInstant.wind_speed} m/s")
@@ -143,6 +140,3 @@ fun WeatherRow(label: String, value: String) {
         Text(text = value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
     }
 }
-
-// --- Preview ---
-
