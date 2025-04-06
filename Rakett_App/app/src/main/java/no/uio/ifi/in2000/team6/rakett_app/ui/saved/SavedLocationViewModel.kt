@@ -54,18 +54,21 @@ class SavedLocationViewModel(
             }
 
             is LaunchPointEvent.setLatitude -> {
+                Log.d(TAG, "Setting latitude: ${event.latitude}")
                 _state.update { it.copy(
                     latitude = event.latitude
                 )}
             }
 
             is LaunchPointEvent.setLongitude -> {
+                Log.d(TAG, "Setting longitude: ${event.longitude}")
                 _state.update { it.copy(
                     longitude = event.longitude
                 )}
             }
 
             is LaunchPointEvent.setName -> {
+                Log.d(TAG, "Setting name: ${event.name}")
                 _state.update { it.copy(
                     name = event.name
                 )}
@@ -73,7 +76,10 @@ class SavedLocationViewModel(
 
             is LaunchPointEvent.UpdateLaunchPoint -> {
                 viewModelScope.launch {
-                    repository.deselectAllLaunchPoints()
+                    Log.d(TAG, "Updating launch point: ${event.launchPoint.name}, selected=${event.launchPoint.selected}")
+                    if (event.launchPoint.selected) {
+                        repository.deselectAllLaunchPoints()
+                    }
                     repository.updateLaunchPoint(event.launchPoint)
                     Log.d(TAG, "Location updated successfully: ${event.launchPoint.name}")
                 }
@@ -85,33 +91,45 @@ class SavedLocationViewModel(
                 val longitudeStr = state.value.longitude
                 val name = state.value.name
 
+                Log.d(TAG, "Attempting to save launch point - lat: $latitudeStr, lon: $longitudeStr, name: $name")
+
                 val latitude = latitudeStr.toDoubleOrNull()
                 val longitude = longitudeStr.toDoubleOrNull()
 
                 if (latitude != null && longitude != null && name.isNotBlank()) {
                     val isFirstLocation = state.value.launchPoints.isEmpty()
+                    Log.d(TAG, "Validation passed, saving new location. Is first location: $isFirstLocation")
 
                     viewModelScope.launch {
-                        // For the first location we add, make it selected
-                        val newLocation = LaunchPoint(
-                            latitude = latitude,
-                            longitude = longitude,
-                            name = name,
-                            selected = isFirstLocation
-                        )
+                        try {
+                            // If this is not the first location, deselect all others first
+                            if (!isFirstLocation && true) { // Set to true to select the new point automatically
+                                repository.deselectAllLaunchPoints()
+                            }
 
-                        repository.upsertLaunchPoint(newLocation)
-                        Log.d(TAG, "New location saved: $name")
-                    }
+                            // For the first location we add, make it selected
+                            val newLocation = LaunchPoint(
+                                latitude = latitude,
+                                longitude = longitude,
+                                name = name,
+                                selected = true // Always select the newly added location
+                            )
 
-                    // Reset form fields and hide dialog
-                    _state.update {
-                        it.copy(
-                            isAddingLaunchPoint = false,
-                            latitude = "",
-                            longitude = "",
-                            name = ""
-                        )
+                            repository.upsertLaunchPoint(newLocation)
+                            Log.d(TAG, "New location saved successfully: $name")
+
+                            // Reset form fields and hide dialog
+                            _state.update {
+                                it.copy(
+                                    isAddingLaunchPoint = false,
+                                    latitude = "",
+                                    longitude = "",
+                                    name = ""
+                                )
+                            }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error saving location", e)
+                        }
                     }
                 } else {
                     Log.e(TAG, "Invalid location data: name=$name, lat=$latitude, long=$longitude")
@@ -146,6 +164,7 @@ class SavedLocationViewModel(
             }
 
             LaunchPointEvent.ShowDialog -> {
+                Log.d(TAG, "Showing add location dialog")
                 _state.update { it.copy(
                     isAddingLaunchPoint = true,
                     // Clear form fields when showing the dialog
@@ -156,6 +175,7 @@ class SavedLocationViewModel(
             }
 
             LaunchPointEvent.HideDialog -> {
+                Log.d(TAG, "Hiding add location dialog")
                 _state.update { it.copy(
                     isAddingLaunchPoint = false
                 )}

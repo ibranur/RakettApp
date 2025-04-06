@@ -24,6 +24,9 @@ class LaunchPointRepository(
         dao.getAllLaunchPoints()
             .onEach { points ->
                 Log.d(TAG, "Retrieved ${points.size} launch points")
+                points.forEach { point ->
+                    Log.d(TAG, "Point: ${point.name}, lat: ${point.latitude}, lon: ${point.longitude}, selected: ${point.selected}, id: ${point.id}")
+                }
             }
             .catch { e ->
                 Log.e(TAG, "Error getting launch points", e)
@@ -31,7 +34,7 @@ class LaunchPointRepository(
 
     override suspend fun upsertLaunchPoint(launchPoint: LaunchPoint) {
         try {
-            Log.d(TAG, "Upserting launch point: ${launchPoint.name}")
+            Log.d(TAG, "Upserting launch point: ${launchPoint.name}, lat: ${launchPoint.latitude}, lon: ${launchPoint.longitude}, selected: ${launchPoint.selected}")
             dao.upsertLaunchPoint(launchPoint)
             Log.d(TAG, "Launch point upserted successfully")
         } catch (e: Exception) {
@@ -42,7 +45,7 @@ class LaunchPointRepository(
 
     override suspend fun deleteLaunchPoint(launchPoint: LaunchPoint) {
         try {
-            Log.d(TAG, "Deleting launch point: ${launchPoint.name}")
+            Log.d(TAG, "Deleting launch point: ${launchPoint.name}, id: ${launchPoint.id}")
             dao.deleteLaunchPoint(launchPoint)
             Log.d(TAG, "Launch point deleted successfully")
         } catch (e: Exception) {
@@ -53,7 +56,7 @@ class LaunchPointRepository(
 
     override suspend fun updateLaunchPoint(launchPoint: LaunchPoint) {
         try {
-            Log.d(TAG, "Updating launch point: ${launchPoint.name}")
+            Log.d(TAG, "Updating launch point: ${launchPoint.name}, id: ${launchPoint.id}, selected: ${launchPoint.selected}")
             dao.updateLaunchPoint(launchPoint)
             Log.d(TAG, "Launch point updated successfully")
         } catch (e: Exception) {

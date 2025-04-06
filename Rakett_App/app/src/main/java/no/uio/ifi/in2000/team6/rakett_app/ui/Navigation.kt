@@ -31,6 +31,7 @@ import no.uio.ifi.in2000.team6.rakett_app.ui.home.GribViewModel
 import no.uio.ifi.in2000.team6.rakett_app.ui.home.HomeScreen
 import no.uio.ifi.in2000.team6.rakett_app.ui.home.HomeScreenViewModel
 import no.uio.ifi.in2000.team6.rakett_app.ui.start.StartScreen
+import android.util.Log
 
 sealed class Screen(val route: String, val label: String) {
     data object Home : Screen("home", "Oppskytningssted")
@@ -44,6 +45,7 @@ fun Navigation(
     onEvent: (LaunchPointEvent) -> Unit
 ) {
     val navController = rememberNavController()
+    val tag = "Navigation"
 
     //Opprette repos og viewmodels
     val safetyReportRepository = SafetyReportRepository()
@@ -51,15 +53,26 @@ fun Navigation(
     val startScreenViewModel = StartScreenViewModel(safetyReportRepository)
     val gribViewModel = GribViewModel()
 
-    //Kaller getFourHour.. funksjonen for punktet som er lagret.
-    if (state.launchPoints.isNotEmpty()) {
-        val selectedPoint = state.launchPoints.find { it.selected }
-        val latitude = selectedPoint?.latitude
-        val longitude = selectedPoint?.longitude
-        if (latitude != null && longitude != null) {
-            homeScreenViewModel.getFourHourForecast(latitude, longitude)
-            gribViewModel.fetchGribData(latitude, longitude)
-            homeScreenViewModel.updateSelectedLocation(state)
+    // Initialize data for the selected point if one exists
+    LaunchedEffect(Unit) {
+        if (state.launchPoints.isNotEmpty()) {
+            val selectedPoint = state.launchPoints.find { it.selected }
+            if (selectedPoint != null) {
+                Log.d(tag, "Initial load with selected point: ${selectedPoint.name}")
+                // Update ViewModel's selectedLocation
+                homeScreenViewModel.selectLocation(selectedPoint, false)
+
+                // Fetch weather data
+                homeScreenViewModel.getFourHourForecast(selectedPoint.latitude, selectedPoint.longitude)
+
+                // Fetch GRIB data
+                gribViewModel.clearData()
+                gribViewModel.fetchGribData(
+                    selectedPoint.latitude,
+                    selectedPoint.longitude,
+                    selectedPoint.name
+                )
+            }
         }
     }
 
@@ -67,9 +80,9 @@ fun Navigation(
     LaunchedEffect(state.launchPoints) {
         val selectedPoint = state.launchPoints.find { it.selected }
         if (selectedPoint != null) {
-            homeScreenViewModel.getFourHourForecast(selectedPoint.latitude, selectedPoint.longitude)
-            gribViewModel.fetchGribData(selectedPoint.latitude, selectedPoint.longitude)
-            homeScreenViewModel.updateSelectedLocation(state)
+            Log.d(tag, "LaunchedEffect: Location changed to ${selectedPoint.name}")
+            // Update ViewModel's selectedLocation - don't fetch weather automatically
+            homeScreenViewModel.selectLocation(selectedPoint, false)
         }
     }
 
