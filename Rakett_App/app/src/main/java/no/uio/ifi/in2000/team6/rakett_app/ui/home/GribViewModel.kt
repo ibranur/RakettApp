@@ -10,9 +10,12 @@ import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.GribRepository
 import no.uio.ifi.in2000.team6.rakett_app.data.windShear
 import no.uio.ifi.in2000.team6.rakett_app.model.grib.GribMap
+import android.util.Log
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 
 class GribViewModel : ViewModel() {
-
+    private val tag = "GribViewModel"
     private val gribRepository = GribRepository()
 
     private val _gribMaps = MutableStateFlow<List<GribMap>>(emptyList())
@@ -27,29 +30,67 @@ class GribViewModel : ViewModel() {
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
-    fun fetchGribData(latitude: Double, longitude: Double) {
-        viewModelScope.launch(Dispatchers.IO) {
+    // Track current coordinates
+    private val _currentLocation = MutableStateFlow<Pair<Double, Double>?>(null)
+
+    // Keep track of active job to be able to cancel it
+    private var activeJob: Job? = null
+
+    // Location name for debugging
+    private val _locationName = MutableStateFlow<String?>(null)
+    val locationName = _locationName.asStateFlow()
+
+    fun fetchGribData(latitude: Double, longitude: Double, locationName: String? = null) {
+        // Cancel any ongoing job first
+        activeJob?.cancel()
+
+        // Immediately clear existing data
+        _gribMaps.value = emptyList()
+        _windShearValues.value = emptyList()
+
+        // Store the location name for debugging
+        _locationName.value = locationName
+
+        // Start a new job
+        activeJob = viewModelScope.launch(Dispatchers.IO) {
             try {
                 _isLoading.value = true
                 _errorMessage.value = null
+
+                Log.d(tag, "Fetching NEW GRIB data for: $locationName (lat: $latitude, lon: $longitude)")
+
+                // Update current location
+                _currentLocation.value = Pair(latitude, longitude)
 
                 val gribMapList = gribRepository.getGribMapped(latitude, longitude)
 
                 if (!gribMapList.isNullOrEmpty()) {
                     val sortedList = gribMapList.sortedBy { it.altitude }
+                    Log.d(tag, "Received NEW GRIB data for $locationName - ${sortedList.size} altitude levels")
                     _gribMaps.value = sortedList
-
                     _windShearValues.value = windShear(sortedList)
                 } else {
-                    //Trenger kanskje bedre løsning? se linje 130 i AltitudeWeatherCard
-                    _errorMessage.value = ""
+                    Log.w(tag, "No GRIB data available for $locationName")
+                    _errorMessage.value = "Ingen høydedata tilgjengelig for denne lokasjonen"
+                    _gribMaps.value = emptyList()
+                    _windShearValues.value = emptyList()
                 }
             } catch (e: Exception) {
+                Log.e(tag, "Error fetching GRIB data for $locationName", e)
                 _errorMessage.value = "Feil ved henting av høydevind-data: ${e.localizedMessage}"
+                _gribMaps.value = emptyList()
+                _windShearValues.value = emptyList()
             } finally {
                 _isLoading.value = false
             }
         }
     }
 
+    fun clearData() {
+        _gribMaps.value = emptyList()
+        _windShearValues.value = emptyList()
+        _errorMessage.value = null
+        _currentLocation.value = null
+        _locationName.value = null
+    }
 }

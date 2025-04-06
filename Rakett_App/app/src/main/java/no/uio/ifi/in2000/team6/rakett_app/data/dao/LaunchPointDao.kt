@@ -24,4 +24,11 @@ interface LaunchPointDao {
 
     @Query("UPDATE launchpoint SET selected = 0 WHERE selected = 1")
     suspend fun deselectAllLaunchPoints()
+
+    // Debugging helpers
+    @Query("SELECT COUNT(*) FROM launchpoint")
+    suspend fun getCount(): Int
+
+    @Query("SELECT * FROM launchpoint WHERE selected = 1 LIMIT 1")
+    suspend fun getSelectedPoint(): LaunchPoint?
 }
