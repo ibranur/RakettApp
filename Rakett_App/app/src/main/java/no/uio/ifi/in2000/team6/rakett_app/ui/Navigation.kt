@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -47,11 +48,11 @@ fun Navigation(
     val navController = rememberNavController()
     val tag = "Navigation"
 
-    //Opprette repos og viewmodels
-    val safetyReportRepository = SafetyReportRepository()
-    val homeScreenViewModel = HomeScreenViewModel(safetyReportRepository)
-    val startScreenViewModel = StartScreenViewModel(safetyReportRepository)
-    val gribViewModel = GribViewModel()
+    // Create repositories and ViewModels - use remember to preserve them across recompositions
+    val safetyReportRepository = remember { SafetyReportRepository() }
+    val homeScreenViewModel = remember { HomeScreenViewModel(safetyReportRepository) }
+    val startScreenViewModel = remember { StartScreenViewModel(safetyReportRepository) }
+    val gribViewModel = remember { GribViewModel() }
 
     // Initialize data for the selected point if one exists
     LaunchedEffect(Unit) {
@@ -82,6 +83,13 @@ fun Navigation(
             Log.d(tag, "LaunchedEffect: Location changed to ${selectedPoint.name}")
             // Update ViewModel's selectedLocation - don't fetch weather automatically
             homeScreenViewModel.selectLocation(selectedPoint, false)
+
+            // Make sure GRIB data is up to date for the selected location
+            gribViewModel.fetchGribData(
+                selectedPoint.latitude,
+                selectedPoint.longitude,
+                selectedPoint.name
+            )
         }
     }
 
@@ -96,11 +104,17 @@ fun Navigation(
         if (currentRoute == Screen.Home.route) {
             val selectedPoint = state.launchPoints.find { it.selected }
             if (selectedPoint != null) {
-                // Don't refetch GRIB data if it's already loaded
                 Log.d(tag, "Returning to Home screen, ensuring data is persisted for ${selectedPoint.name}")
 
-                // Refresh the forecast data when returning to home screen
-                homeScreenViewModel.getFourHourForecast(selectedPoint.latitude, selectedPoint.longitude)
+                // Ensure we have the location properly selected (no fetch)
+                homeScreenViewModel.selectLocation(selectedPoint, false)
+
+                // Ensure GRIB data exists (will use cache if available)
+                gribViewModel.fetchGribData(
+                    selectedPoint.latitude,
+                    selectedPoint.longitude,
+                    selectedPoint.name
+                )
             }
         }
     }
