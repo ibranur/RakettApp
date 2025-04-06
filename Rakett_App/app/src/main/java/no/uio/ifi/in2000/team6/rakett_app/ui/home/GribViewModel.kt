@@ -13,6 +13,7 @@ import no.uio.ifi.in2000.team6.rakett_app.model.grib.GribMap
 import android.util.Log
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.withContext
 
 class GribViewModel : ViewModel() {
     private val tag = "GribViewModel"
@@ -62,7 +63,11 @@ class GribViewModel : ViewModel() {
         }
 
         // Cancel any ongoing job first
-        activeJob?.cancel()
+        try {
+            activeJob?.cancel()
+        } catch (e: Exception) {
+            Log.e(tag, "Error canceling job: ${e.message}")
+        }
 
         // Start a new job
         activeJob = viewModelScope.launch(Dispatchers.IO) {
@@ -76,7 +81,12 @@ class GribViewModel : ViewModel() {
                 _currentLocation.value = Pair(latitude, longitude)
                 _locationName.value = locationName
 
-                val gribMapList = gribRepository.getGribMapped(latitude, longitude)
+                val gribMapList = try {
+                    gribRepository.getGribMapped(latitude, longitude)
+                } catch (e: Exception) {
+                    Log.e(tag, "Exception during GRIB data fetch: ${e.message}", e)
+                    null
+                }
 
                 if (!gribMapList.isNullOrEmpty()) {
                     val sortedList = gribMapList.sortedBy { it.altitude }
@@ -84,36 +94,62 @@ class GribViewModel : ViewModel() {
 
                     // Update cache
                     cachedGribMaps = sortedList
-                    cachedWindShear = windShear(sortedList)
 
-                    // Update observable values
-                    _gribMaps.value = sortedList
-                    _windShearValues.value = cachedWindShear
+                    val shearValues = try {
+                        windShear(sortedList)
+                    } catch (e: Exception) {
+                        Log.e(tag, "Error calculating wind shear: ${e.message}", e)
+                        emptyList()
+                    }
+                    cachedWindShear = shearValues
+
+                    // Update observable values on main thread
+                    withContext(Dispatchers.Main) {
+                        _gribMaps.value = sortedList
+                        _windShearValues.value = shearValues
+                    }
                 } else {
                     Log.w(tag, "No GRIB data available for $locationName")
-                    _errorMessage.value = "Ingen tilgjengelig høydedata - kan kun vise data for Sør-Norge"
 
-                    // Clear cache for this location
-                    cachedGribMaps = emptyList()
-                    cachedWindShear = emptyList()
+                    withContext(Dispatchers.Main) {
+                        _errorMessage.value = "Ingen tilgjengelig høydedata - kan kun vise data for Sør-Norge"
 
-                    // Update observable values
-                    _gribMaps.value = emptyList()
-                    _windShearValues.value = emptyList()
+                        // We still update the coordinates and name so we show something
+                        _currentLocation.value = Pair(latitude, longitude)
+                        _locationName.value = locationName
+                    }
+
+                    // Keep using old cache if available, otherwise clear
+                    if (cachedGribMaps.isEmpty()) {
+                        // Update observable values on main thread
+                        withContext(Dispatchers.Main) {
+                            _gribMaps.value = emptyList()
+                            _windShearValues.value = emptyList()
+                        }
+                    }
                 }
             } catch (e: Exception) {
                 Log.e(tag, "Error fetching GRIB data for $locationName", e)
-                _errorMessage.value = "Feil ved henting av høydevind-data: ${e.localizedMessage}"
 
-                // Don't clear cache in case of temporary error
+                withContext(Dispatchers.Main) {
+                    _errorMessage.value = "Feil ved henting av høydevind-data: ${e.message}"
 
-                // Update observable values if we don't have cached data
+                    // We still update coordinates and name
+                    _currentLocation.value = Pair(latitude, longitude)
+                    _locationName.value = locationName
+                }
+
+                // Keep using old cache if available
                 if (cachedGribMaps.isEmpty()) {
-                    _gribMaps.value = emptyList()
-                    _windShearValues.value = emptyList()
+                    withContext(Dispatchers.Main) {
+                        _gribMaps.value = emptyList()
+                        _windShearValues.value = emptyList()
+                    }
                 }
             } finally {
-                _isLoading.value = false
+                withContext(Dispatchers.Main) {
+                    _isLoading.value = false
+                }
             }
         }
     }
@@ -121,9 +157,24 @@ class GribViewModel : ViewModel() {
     fun clearData() {
         // Only clear in-memory cache, not observable values
         // This allows data to remain visible when switching between tabs
-        cachedGribMaps = emptyList()
-        cachedWindShear = emptyList()
-        _currentLocation.value = null
-        _locationName.value = null
+        viewModelScope.launch {
+            _isLoading.value = true
+
+            try {
+                cachedGribMaps = emptyList()
+                cachedWindShear = emptyList()
+                _currentLocation.value = null
+                _locationName.value = null
+
+                // Also clear the observable values to prevent stale data
+                _gribMaps.value = emptyList()
+                _windShearValues.value = emptyList()
+                _errorMessage.value = null
+            } catch (e: Exception) {
+                Log.e(tag, "Error in clearData: ${e.message}", e)
+            } finally {
+                _isLoading.value = false
+            }
+        }
     }
 }

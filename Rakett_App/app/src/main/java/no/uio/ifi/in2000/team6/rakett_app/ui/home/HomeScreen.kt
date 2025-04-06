@@ -3,9 +3,9 @@ package no.uio.ifi.in2000.team6.rakett_app.ui.home
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -16,7 +16,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -31,7 +30,7 @@ import no.uio.ifi.in2000.team6.rakett_app.ui.cards.AltitudeWeatherSection
 import no.uio.ifi.in2000.team6.rakett_app.ui.cards.ExpandableCard
 import no.uio.ifi.in2000.team6.rakett_app.ui.saved.EditLocationDialog
 import android.util.Log
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 
 @Composable
 fun HomeScreen(
@@ -46,6 +45,7 @@ fun HomeScreen(
     Log.d(tag, "Rendering HomeScreen with state: $state")
 
     val scope = rememberCoroutineScope()
+    val scrollState = rememberScrollState()
 
     // Weather forecast
     val fourHourUIState by viewModel.fourHourUIState.collectAsState()
@@ -57,7 +57,7 @@ fun HomeScreen(
     val launchPointState by viewModel.launchPointState.collectAsState()
     Log.d(tag, "Launch points from view model: ${launchPointState.launchPoints.size}")
 
-    // Grib data
+    // Grib data with safer collection (never null)
     val gribMaps by gribViewModel.gribMaps.collectAsState()
     val windShearValues by gribViewModel.windShearValues.collectAsState()
     val isLoadingGrib by gribViewModel.isLoading.collectAsState()
@@ -66,26 +66,77 @@ fun HomeScreen(
     // State for dropdown
     var dropdownExpanded by remember { mutableStateOf(false) }
 
+    // State for UI error handling
+    var showError by remember { mutableStateOf(false) }
+    var errorText by remember { mutableStateOf("") }
+
+    // State to disable buttons during operations
+    var isProcessing by remember { mutableStateOf(false) }
+
     // Remember the selected point from state
     val selectedPoint = state?.launchPoints?.find { it.selected }
 
-    // Debugging location info
-    LaunchedEffect(selectedPoint) {
-        Log.d(tag, "Current selected point: ${selectedPoint?.name}")
-    }
+    // Safe data fetching with timeout
+    fun safeGribFetch(location: LaunchPoint) {
+        isProcessing = true // Disable UI during fetch
 
-    // Sync GRIB data when selected point changes
-    LaunchedEffect(selectedPoint) {
-        Log.d(tag, "LaunchedEffect for selectedPoint: ${selectedPoint?.name}")
-        if (selectedPoint != null) {
-            // Clear existing GRIB data first
-            gribViewModel.clearData()
-            // Then fetch new data, passing location name for debugging
-            gribViewModel.fetchGribData(
-                selectedPoint.latitude,
-                selectedPoint.longitude,
-                selectedPoint.name
-            )
+        scope.launch {
+            try {
+                Log.d(tag, "Starting safe GRIB fetch for ${location.name}")
+
+                // Clear existing data
+                withContext(Dispatchers.Main) {
+                    gribViewModel.clearData()
+                }
+
+                // First update the UI to show we selected this location
+                withContext(Dispatchers.Main) {
+                    viewModel.selectLocation(location, false)  // false = don't force fetch
+                }
+
+                // Wait a moment to ensure UI updates
+                delay(100)
+
+                // Now attempt to fetch GRIB data with timeout
+                withTimeoutOrNull(5000) {
+                    try {
+                        gribViewModel.fetchGribData(
+                            location.latitude,
+                            location.longitude,
+                            location.name
+                        )
+                        true
+                    } catch (e: Exception) {
+                        Log.e(tag, "Error fetching GRIB data: ${e.message}", e)
+                        false
+                    }
+                } ?: run {
+                    // Timeout occurred
+                    Log.w(tag, "GRIB data fetch timed out for ${location.name}")
+                    withContext(Dispatchers.Main) {
+                        showError = true
+                        errorText = "GRIB-data kunne ikke hentes innen tidsgrensen."
+                    }
+                }
+
+                // Get weather forecast separately from GRIB data
+                try {
+                    viewModel.getFourHourForecast(location.latitude, location.longitude)
+                } catch (e: Exception) {
+                    Log.e(tag, "Error fetching forecast: ${e.message}", e)
+                }
+
+            } catch (e: Exception) {
+                Log.e(tag, "Error in safe fetch: ${e.message}", e)
+                withContext(Dispatchers.Main) {
+                    showError = true
+                    errorText = "Feil ved behandling av data: ${e.message}"
+                }
+            } finally {
+                withContext(Dispatchers.Main) {
+                    isProcessing = false // Re-enable UI
+                }
+            }
         }
     }
 
@@ -104,6 +155,20 @@ fun HomeScreen(
         EditLocationDialog(
             state = state,
             onEvent = onEvent
+        )
+    }
+
+    // Error dialog
+    if (showError) {
+        AlertDialog(
+            onDismissRequest = { showError = false },
+            title = { Text("Merknad") },
+            text = { Text(errorText) },
+            confirmButton = {
+                Button(onClick = { showError = false }) {
+                    Text("OK")
+                }
+            }
         )
     }
 
@@ -132,7 +197,8 @@ fun HomeScreen(
                         containerColor = Color(0xFFE3E8FD),
                         contentColor = Color.Black
                     ),
-                    contentPadding = PaddingValues(horizontal = 16.dp)
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    enabled = !isProcessing
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -165,7 +231,7 @@ fun HomeScreen(
 
                 // Dropdown menu
                 DropdownMenu(
-                    expanded = dropdownExpanded,
+                    expanded = dropdownExpanded && !isProcessing,
                     onDismissRequest = { dropdownExpanded = false },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -176,7 +242,7 @@ fun HomeScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable {
+                            .clickable(enabled = !isProcessing) {
                                 dropdownExpanded = false
                                 onEvent(LaunchPointEvent.ShowDialog)
                             }
@@ -236,27 +302,14 @@ fun HomeScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(48.dp)
-                                    .clickable {
+                                    .clickable(enabled = !isProcessing) {
                                         Log.d(tag, "Selected location: ${location.name}")
 
                                         // Close dropdown first
                                         dropdownExpanded = false
 
-                                        // Now select the location - this will update UI immediately
-                                        scope.launch {
-                                            // Clear GRIB data first
-                                            gribViewModel.clearData()
-
-                                            // Select location in ViewModel
-                                            viewModel.selectLocation(location)
-
-                                            // Fetch GRIB data for the new location
-                                            gribViewModel.fetchGribData(
-                                                location.latitude,
-                                                location.longitude,
-                                                location.name
-                                            )
-                                        }
+                                        // Use our safe fetch function
+                                        safeGribFetch(location)
                                     }
                                     .padding(horizontal = 16.dp),
                                 verticalAlignment = Alignment.CenterVertically,
@@ -294,7 +347,8 @@ fun HomeScreen(
                                             onEvent(LaunchPointEvent.SetCurrentEditLocation(location))
                                             onEvent(LaunchPointEvent.ShowEditDialog)
                                         },
-                                        modifier = Modifier.size(36.dp)
+                                        modifier = Modifier.size(36.dp),
+                                        enabled = !isProcessing
                                     ) {
                                         Icon(
                                             imageVector = Icons.Default.Edit,
@@ -310,7 +364,8 @@ fun HomeScreen(
                                             Log.d(tag, "Delete button clicked for: ${location.name}")
                                             onEvent(LaunchPointEvent.DeleteLaunchPoint(location))
                                         },
-                                        modifier = Modifier.size(36.dp)
+                                        modifier = Modifier.size(36.dp),
+                                        enabled = !isProcessing
                                     ) {
                                         Icon(
                                             imageVector = Icons.Outlined.Delete,
@@ -329,118 +384,118 @@ fun HomeScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Weather data sections
+        // Message during processing
+        if (isProcessing) {
+            LinearProgressIndicator(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        // Main content with vertical scroll
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
+                .verticalScroll(scrollState)
         ) {
-            // Ground level weather - takes approximately 60% of available space
-            Column(
-                modifier = Modifier.weight(0.60f)
-            ) {
-                // Title row without refresh button
-                Text(
-                    text = "Været på bakkenivå de neste 4 timene",
-                    style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier.fillMaxWidth()
-                )
+            // Tittel for bakkenivå
+            Text(
+                text = "Været på bakkenivå de neste 4 timene",
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.fillMaxWidth()
+            )
 
-                Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-                if (selectedLocationFromViewModel == null) {
-                    // No location selected message
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "Legg til og velg en lokasjon for å se værdata",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.primary,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                } else if (fourHourUIState.list.isEmpty()) {
-                    // Loading indicator
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                        contentAlignment = Alignment.Center
+            if (selectedLocationFromViewModel == null) {
+                // Ingen valgt lokasjon
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Legg til og velg en lokasjon for å se værdata",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            } else if (fourHourUIState.list.isEmpty()) {
+                // Laster data
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         CircularProgressIndicator()
+                        Text("Henter værdata...")
                     }
-                } else {
-                    // Display 4-hour weather data in a fixed container
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                    ) {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.spacedBy(3.dp)
-                        ) {
-                            items(fourHourUIState.list) { fourHour ->
-                                if (fourHour != null) {
-                                    ExpandableCard(fourHour = fourHour)
-                                }
-                            }
+                }
+            } else {
+                // Vis værkort - håndter potensielt tomme eller null-objekter
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    fourHourUIState.list.forEach { fourHour ->
+                        if (fourHour != null) {
+                            ExpandableCard(fourHour = fourHour)
                         }
                     }
                 }
             }
 
-            // Divider to separate the two weather sections
+            // Legg til mellomrom mellom seksjonene
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Høydeværseksjonen
+            Text(
+                text = "Værdata i høyden nå",
+                style = MaterialTheme.typography.headlineSmall
+            )
+
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Altitude weather data - takes approximately 40% of available space
-            Column(
-                modifier = Modifier.weight(0.40f)
-            ) {
-                Text(
-                    text = "Værdata i høyden nå",
-                    style = MaterialTheme.typography.headlineSmall
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                if (selectedLocationFromViewModel == null) {
-                    // No location selected
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "Legg til og velg en lokasjon for å se værdata",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.primary,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                } else {
-                    // Display altitude weather data
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                    ) {
-                        AltitudeWeatherSection(
-                            modifier = Modifier.fillMaxWidth(),
-                            gribMaps = gribMaps,
-                            windShearValues = windShearValues,
-                            isLoading = isLoadingGrib,
-                            errorMessage = errorMessage,
-                            title = ""
-                        )
-                    }
+            if (selectedLocationFromViewModel == null) {
+                // Ingen valgt lokasjon
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Legg til og velg en lokasjon for å se værdata",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        textAlign = TextAlign.Center
+                    )
                 }
+            } else {
+                // Vis høydeværdata eller melding om begrensning
+                // AltitudeWeatherSection vil vise en feilmelding om data mangler
+                AltitudeWeatherSection(
+                    modifier = Modifier.fillMaxWidth(),
+                    gribMaps = gribMaps,
+                    windShearValues = windShearValues,
+                    isLoading = isLoadingGrib || isProcessing,
+                    errorMessage = errorMessage,
+                    title = ""
+                )
             }
+
+            // Legg til litt ekstra plass nederst så alt innhold er synlig
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
