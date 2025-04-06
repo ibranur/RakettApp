@@ -48,8 +48,8 @@ fun AltitudeWeatherCard(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .weight(1f)
-                    .padding(end = 8.dp),  // Lagt til padding på høyre side
-                horizontalArrangement = Arrangement.End  // Justert til høyre
+                    .padding(end = 8.dp),
+                horizontalArrangement = Arrangement.End
             ) {
                 Text(
                     text = "☁️",
@@ -126,8 +126,12 @@ fun AltitudeWeatherList(
             modifier = modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
-            Text(text = "Ingen tilgjengelig høydedata - kan kun vise data for Sør-Norge",
-                color = Color.Red)
+            Text(
+                text = "Ingen tilgjengelig høydedata - kan kun vise data for Sør-Norge",
+                color = Color.Red,
+                modifier = Modifier.padding(horizontal = 16.dp),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
         }
         return
     }
@@ -166,14 +170,16 @@ fun AltitudeWeatherSection(
     title: String = "Værdata i høyden nå"
 ) {
     Column(modifier = modifier) {
+        // Only show title if provided
         if (title.isNotEmpty()) {
             Text(
                 text = title,
-                modifier = Modifier.padding(bottom = 8.dp),
+                modifier = Modifier.padding(bottom = 4.dp),
                 style = MaterialTheme.typography.headlineSmall
             )
         }
 
+        // Only one error message should be shown - prefer the one from the ViewModel
         AltitudeWeatherList(
             modifier = Modifier.fillMaxWidth(),
             gribMaps = gribMaps,

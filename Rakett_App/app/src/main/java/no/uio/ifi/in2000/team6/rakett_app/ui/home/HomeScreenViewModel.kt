@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,6 +18,7 @@ import no.uio.ifi.in2000.team6.rakett_app.data.repository.LocationForecastReposi
 import no.uio.ifi.in2000.team6.rakett_app.data.CoordinatesManager
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.SafetyReportRepository
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.LaunchPointRepositoryInterface
+import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.FourHour
 import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.FourHourUIState
 
 class HomeScreenViewModel(
@@ -47,6 +47,9 @@ class HomeScreenViewModel(
 
     // Repository for weather data
     private val _locationForecastRepository = LocationForecastRepository()
+
+    // Cache for forecast data
+    private val forecastCache = mutableMapOf<Pair<Double, Double>, List<FourHour>>()
 
     init {
         Log.d(tag, "Initializing HomeScreenViewModel")
@@ -90,9 +93,21 @@ class HomeScreenViewModel(
                 // First update UI state immediately
                 _selectedLocation.value = launchPoint
 
-                // Clear existing forecast data to show loading state
-                _fourHourUIState.update {
-                    it.copy(list = emptyList())
+                // Check if we have cached data
+                val coords = Pair(launchPoint.latitude, launchPoint.longitude)
+                val cachedForecast = forecastCache[coords]
+
+                if (cachedForecast != null && !forceFetch) {
+                    // Use cached data immediately
+                    Log.d(tag, "Using cached forecast data for: ${launchPoint.name}")
+                    _fourHourUIState.update {
+                        it.copy(list = cachedForecast)
+                    }
+                } else if (forceFetch || _currentCoordinates.value != coords) {
+                    // Show loading state if we're forcing a fetch or location changed
+                    _fourHourUIState.update {
+                        it.copy(list = emptyList())
+                    }
                 }
 
                 // Update the database
@@ -114,12 +129,14 @@ class HomeScreenViewModel(
                 }
 
                 // Update coordinates manager only if forcing fetch or coordinates changed
-                if (forceFetch || _currentCoordinates.value != Pair(launchPoint.latitude, launchPoint.longitude)) {
-                    _currentCoordinates.value = Pair(launchPoint.latitude, launchPoint.longitude)
+                if (forceFetch || _currentCoordinates.value != coords) {
+                    _currentCoordinates.value = coords
                     CoordinatesManager.updateLocation(launchPoint.latitude, launchPoint.longitude)
 
-                    // Fetch weather data
-                    getFourHourForecast(launchPoint.latitude, launchPoint.longitude)
+                    // Fetch weather data if needed
+                    if (cachedForecast == null || forceFetch) {
+                        getFourHourForecast(launchPoint.latitude, launchPoint.longitude)
+                    }
                 }
 
             } catch (e: Exception) {
@@ -135,21 +152,38 @@ class HomeScreenViewModel(
         // Cancel any active job first
         activeForecastJob?.cancel()
 
-        // Start new job
+        // Check for cached data
+        val coords = Pair(latitude, longitude)
+        val cachedForecast = forecastCache[coords]
+
+        if (cachedForecast != null) {
+            // Use cached data immediately
+            Log.d(tag, "Using cached forecast data for: $latitude, $longitude")
+            _fourHourUIState.update {
+                it.copy(list = cachedForecast)
+            }
+        }
+
+        // Start new job to get fresh data (even if we showed cached data)
         activeForecastJob = viewModelScope.launch(Dispatchers.IO) {
             try {
                 Log.d(tag, "Getting forecast for lat: $latitude, lon: $longitude")
 
-                // Clear current forecast data to show loading state
-                withContext(Dispatchers.Main) {
-                    _fourHourUIState.update {
-                        it.copy(list = emptyList())
+                // Only clear current forecast data if we don't have cached data
+                if (cachedForecast == null) {
+                    withContext(Dispatchers.Main) {
+                        _fourHourUIState.update {
+                            it.copy(list = emptyList())
+                        }
                     }
                 }
 
                 // Fetch new forecast data
                 val fourHourForecast = _locationForecastRepository.getNextFourHourForecast(latitude, longitude)
                 Log.d(tag, "Got forecast with ${fourHourForecast.size} hours")
+
+                // Cache the new data
+                forecastCache[coords] = fourHourForecast
 
                 // Update UI with new data
                 withContext(Dispatchers.Main) {
@@ -161,9 +195,12 @@ class HomeScreenViewModel(
             } catch (e: Exception) {
                 Log.e(tag, "Error getting forecast", e)
 
-                withContext(Dispatchers.Main) {
-                    _fourHourUIState.update {
-                        it.copy(list = emptyList())
+                // Only clear UI if we don't have cached data
+                if (cachedForecast == null) {
+                    withContext(Dispatchers.Main) {
+                        _fourHourUIState.update {
+                            it.copy(list = emptyList())
+                        }
                     }
                 }
             }
@@ -174,6 +211,7 @@ class HomeScreenViewModel(
      * Clear all weather data - useful when changing screens or during location edit
      */
     fun clearWeatherData() {
+        forecastCache.clear()
         _fourHourUIState.update {
             it.copy(list = emptyList())
         }

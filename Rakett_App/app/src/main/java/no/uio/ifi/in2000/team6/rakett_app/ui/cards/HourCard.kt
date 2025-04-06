@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -25,95 +26,41 @@ import no.uio.ifi.in2000.team6.rakett_app.data.getDrawableIdByName
 import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.FourHour
 import no.uio.ifi.in2000.team6.rakett_app.ui.Rating.WeatherRatingIndicator
 
-// --- Data Classes ---
-
-data class DetailedWeatherInfo(
-    val windSpeed: String,
-    val windGust: String,
-    val windDirection: String,
-    val precipitation: String,
-    val cloudCover: String,
-    val humidity: String,
-    val thunderProbability: String,
-    val airPressure: String,
-    val airTemperature: String,
-    // Add other relevant fields from the JSON here
-)
-
-data class HourWeatherInfo(
-    val hour: String,
-    val weatherScore: Double,
-    val detailedInfo: DetailedWeatherInfo
-)
-
-// --- Composable ---
-
-@Composable
-fun HourCard(
-    fourHour: FourHour,
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-        ),
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = fourHour.hour,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-                WeatherRatingIndicator(ScoreHour(fourHour))
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-        }
-    }
-}
-
 @Composable
 fun HourShortInfo(
     fourHour: FourHour
 ) {
-    Column {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = fourHour.hour,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-            val image = getDrawableIdByName(LocalContext.current, fourHour.symbol_code)
-            Image(
-                painter = painterResource(image),
-                contentDescription = "weather symbol",
-                modifier = Modifier
-                    .height(50.dp)
-                    .width(50.dp)
-            )
-            WeatherRatingIndicator(ScoreHour(fourHour))
-        }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = fourHour.hour,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold
+        )
+        val image = getDrawableIdByName(LocalContext.current, fourHour.symbol_code)
+        Image(
+            painter = painterResource(image),
+            contentDescription = "weather symbol",
+            modifier = Modifier
+                .height(50.dp)
+                .width(50.dp)
+        )
+        WeatherRatingIndicator(ScoreHour(fourHour))
     }
 }
 
 @Composable
 fun DetailedWeatherDisplay(fourHour: FourHour) {
-    Column (
+    Column(
         modifier = Modifier
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-    ){
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
         // Use Rows to create a tabular layout
         WeatherRow(label = stringResource(R.string.wind_speed), value = "${fourHour.detailsInstant.wind_speed} m/s")
         WeatherRow(label = stringResource(R.string.wind_gust), value = "${fourHour.detailsInstant.wind_speed_of_gust} m/s")
@@ -136,7 +83,16 @@ fun WeatherRow(label: String, value: String) {
             .padding(vertical = 2.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(text = label, style = MaterialTheme.typography.bodyMedium)
-        Text(text = value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }

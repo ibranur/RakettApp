@@ -102,19 +102,25 @@ class SavedLocationViewModel(
 
                     viewModelScope.launch {
                         try {
-                            // If this is not the first location, deselect all others first
-                            if (!isFirstLocation && true) { // Set to true to select the new point automatically
-                                repository.deselectAllLaunchPoints()
-                            }
+                            // If this is not the first location, keep the current selected point
+                            // We'll only select the newly added point if there's no other point
+                            val shouldSelectNewPoint = isFirstLocation
 
-                            // For the first location we add, make it selected
+                            // Create the new location with proper selection status
                             val newLocation = LaunchPoint(
                                 latitude = latitude,
                                 longitude = longitude,
                                 name = name,
-                                selected = true // Always select the newly added location
+                                selected = shouldSelectNewPoint
                             )
 
+                            // Before we save the new point
+                            if (shouldSelectNewPoint) {
+                                // Deselect all existing points first if we'll be selecting the new one
+                                repository.deselectAllLaunchPoints()
+                            }
+
+                            // Save the new point
                             repository.upsertLaunchPoint(newLocation)
                             Log.d(TAG, "New location saved successfully: $name")
 
