@@ -66,7 +66,6 @@ fun Navigation(
                 homeScreenViewModel.getFourHourForecast(selectedPoint.latitude, selectedPoint.longitude)
 
                 // Fetch GRIB data
-                gribViewModel.clearData()
                 gribViewModel.fetchGribData(
                     selectedPoint.latitude,
                     selectedPoint.longitude,
@@ -83,6 +82,26 @@ fun Navigation(
             Log.d(tag, "LaunchedEffect: Location changed to ${selectedPoint.name}")
             // Update ViewModel's selectedLocation - don't fetch weather automatically
             homeScreenViewModel.selectLocation(selectedPoint, false)
+        }
+    }
+
+    // Track current route and ensure data persists between screens
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    LaunchedEffect(currentRoute) {
+        Log.d(tag, "Navigation: Current route changed to $currentRoute")
+
+        // When returning to the home screen, make sure data is persisted
+        if (currentRoute == Screen.Home.route) {
+            val selectedPoint = state.launchPoints.find { it.selected }
+            if (selectedPoint != null) {
+                // Don't refetch GRIB data if it's already loaded
+                Log.d(tag, "Returning to Home screen, ensuring data is persisted for ${selectedPoint.name}")
+
+                // Refresh the forecast data when returning to home screen
+                homeScreenViewModel.getFourHourForecast(selectedPoint.latitude, selectedPoint.longitude)
+            }
         }
     }
 
