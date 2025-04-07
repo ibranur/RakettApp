@@ -22,8 +22,18 @@ class SavedLocationViewModel(
     private val _state = MutableStateFlow(LaunchPointState())
     private val _launchPoints = repository.getAllLaunchPoints()
 
+    // Maintain selected location ID to prevent unexpected changes
+    private val _selectedLocationId = MutableStateFlow<Int?>(null)
+
     val state = combine(_state, _launchPoints) { state, launchPoints ->
         Log.d(TAG, "State updated: ${launchPoints.size} locations available")
+
+        val selectedLocation = launchPoints.find { it.selected }
+        if (selectedLocation != null && _selectedLocationId.value != selectedLocation.id) {
+            _selectedLocationId.value = selectedLocation.id
+            Log.d(TAG, "Tracking newly selected location: ${selectedLocation.name} (ID: ${selectedLocation.id})")
+        }
+
         state.copy(
             launchPoints = launchPoints
         )
@@ -41,34 +51,40 @@ class SavedLocationViewModel(
                     val otherPoints = state.value.launchPoints.filter { it.id != event.launchPoint.id }
 
                     if (isSelected && otherPoints.isNotEmpty()) {
-                        // Find another location to select first
-                        val otherPoint = otherPoints.first()
-                        Log.d(TAG, "Selected point deleted, selecting new point: ${otherPoint.name}")
-                        repository.updateLaunchPoint(otherPoint.copy(selected = true))
+                        // CHANGE: Select the top location in the list instead of the first one
+                        val newSelectedPoint = otherPoints.minByOrNull { it.id } // Get location with lowest ID (oldest)
+                        if (newSelectedPoint != null) {
+                            Log.d(TAG, "Selected point deleted, selecting new point: ${newSelectedPoint.name}")
+                            repository.updateLaunchPoint(newSelectedPoint.copy(selected = true))
+                            _selectedLocationId.value = newSelectedPoint.id
+                        }
                     }
 
                     // Now delete the point
                     repository.deleteLaunchPoint(event.launchPoint)
+
+                    // Update tracking if needed
+                    if (event.launchPoint.id == _selectedLocationId.value) {
+                        _selectedLocationId.value = null
+                    }
+
                     Log.d(TAG, "Location deleted successfully")
                 }
             }
 
             is LaunchPointEvent.setLatitude -> {
-                Log.d(TAG, "Setting latitude: ${event.latitude}")
                 _state.update { it.copy(
                     latitude = event.latitude
                 )}
             }
 
             is LaunchPointEvent.setLongitude -> {
-                Log.d(TAG, "Setting longitude: ${event.longitude}")
                 _state.update { it.copy(
                     longitude = event.longitude
                 )}
             }
 
             is LaunchPointEvent.setName -> {
-                Log.d(TAG, "Setting name: ${event.name}")
                 _state.update { it.copy(
                     name = event.name
                 )}
@@ -77,11 +93,28 @@ class SavedLocationViewModel(
             is LaunchPointEvent.UpdateLaunchPoint -> {
                 viewModelScope.launch {
                     Log.d(TAG, "Updating launch point: ${event.launchPoint.name}, selected=${event.launchPoint.selected}")
-                    if (event.launchPoint.selected) {
-                        repository.deselectAllLaunchPoints()
+
+                    // FIX: For editing locations, preserve the selection state
+                    val wasSelected = state.value.launchPoints.find { it.id == event.launchPoint.id }?.selected ?: false
+                    val shouldRemainSelected = event.launchPoint.selected || wasSelected
+
+                    val updatedLocation = if (shouldRemainSelected) {
+                        event.launchPoint.copy(selected = true)
+                    } else {
+                        event.launchPoint
                     }
-                    repository.updateLaunchPoint(event.launchPoint)
-                    Log.d(TAG, "Location updated successfully: ${event.launchPoint.name}")
+
+                    // Only deselect all if this location should be selected
+                    if (shouldRemainSelected) {
+                        repository.deselectAllLaunchPoints()
+
+                        // Update tracking
+                        _selectedLocationId.value = updatedLocation.id
+                        Log.d(TAG, "Location remains/becomes selected: ${updatedLocation.name} (ID: ${updatedLocation.id})")
+                    }
+
+                    repository.updateLaunchPoint(updatedLocation)
+                    Log.d(TAG, "Location updated successfully: ${updatedLocation.name}")
                 }
             }
 
@@ -123,6 +156,12 @@ class SavedLocationViewModel(
                             // Save the new point
                             repository.upsertLaunchPoint(newLocation)
                             Log.d(TAG, "New location saved successfully: $name")
+
+                            // Update tracking if this becomes the selected location
+                            if (shouldSelectNewPoint) {
+                                // We don't know the ID yet as it's auto-generated,
+                                // but it'll be updated when the flow delivers the new state
+                            }
 
                             // Reset form fields and hide dialog
                             _state.update {

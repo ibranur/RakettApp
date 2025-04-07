@@ -13,8 +13,8 @@ import no.uio.ifi.in2000.team6.rakett_app.model.grib.GribMap
 import android.util.Log
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeoutOrNull
 
 class GribViewModel : ViewModel() {
     private val tag = "GribViewModel"
@@ -32,36 +32,89 @@ class GribViewModel : ViewModel() {
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
-    // Track current coordinates
-    private val _currentLocation = MutableStateFlow<Pair<Double, Double>?>(null)
-
-    // Track the location name for internal use
+    // Track current location information
+    private val _currentLocationId = MutableStateFlow<Int?>(null)
     private val _locationName = MutableStateFlow<String?>(null)
     val locationName = _locationName.asStateFlow()
 
     // Keep track of active job to be able to cancel it
     private var activeJob: Job? = null
 
-    // Keep the data between screen transitions
-    private var cachedGribMaps = emptyList<GribMap>()
-    private var cachedWindShear = emptyList<Double>()
+    // Cache optimizations
+    private val cache = mutableMapOf<String, CacheEntry>()
+    private val loadingStatuses = mutableMapOf<String, Boolean>()
 
-    fun fetchGribData(latitude: Double, longitude: Double, locationName: String? = null) {
-        // If we're already showing data for this location, don't refetch
-        val currentCoords = _currentLocation.value
-        if (currentCoords != null &&
-            currentCoords.first == latitude &&
-            currentCoords.second == longitude &&
-            cachedGribMaps.isNotEmpty()) {
+    private data class CacheEntry(
+        val gribMaps: List<GribMap>,
+        val windShear: List<Double>,
+        val locationId: Int?, // Store the location ID for verification
+        val timestamp: Long // Add timestamp for cache invalidation
+    )
 
-            // Use cached data immediately
-            _gribMaps.value = cachedGribMaps
-            _windShearValues.value = cachedWindShear
-            _locationName.value = locationName
+    // Static companion object to maintain state across instances
+    companion object {
+        private val selectedLocationId = MutableStateFlow<Int?>(null)
 
-            Log.d(tag, "Using cached GRIB data for $locationName (${cachedGribMaps.size} altitude levels)")
+        // Method to get the current selected ID
+        fun getSelectedLocationId(): Int? {
+            return selectedLocationId.value
+        }
+
+        // Method to set the selected ID
+        fun setSelectedLocationId(id: Int?) {
+            selectedLocationId.value = id
+        }
+    }
+
+    // Instance methods to access companion object
+    fun getSelectedLocationId(): Int? = Companion.getSelectedLocationId()
+
+    fun setSelectedLocationId(id: Int?) {
+        Companion.setSelectedLocationId(id)
+    }
+
+    init {
+        // Monitor the persistent location ID to keep data in sync
+        viewModelScope.launch {
+            selectedLocationId.collectLatest { locationId ->
+                if (locationId != _currentLocationId.value) {
+                    Log.d(tag, "Location ID changed to $locationId, current is ${_currentLocationId.value}")
+                    _currentLocationId.value = locationId
+                }
+            }
+        }
+    }
+
+    fun fetchGribData(latitude: Double, longitude: Double, locationName: String? = null, locationId: Int? = null) {
+        // Performance optimization: Avoid redundant fetches
+        val actualLocationId = locationId ?: selectedLocationId.value
+        val cacheKey = "${latitude}_${longitude}"
+
+        // If we're already loading this location, don't start a new fetch
+        if (loadingStatuses[cacheKey] == true) {
+            Log.d(tag, "Already loading data for $locationName, skipping duplicate fetch")
             return
         }
+
+        // Check for fresh cached data (< 30 minutes old)
+        val cachedData = cache[cacheKey]
+        val isCacheFresh = cachedData != null &&
+                (System.currentTimeMillis() - cachedData.timestamp) < 30 * 60 * 1000 &&
+                cachedData.locationId == actualLocationId
+
+        if (isCacheFresh) {
+            Log.d(tag, "Using fresh cached GRIB data for $locationName")
+            _locationName.value = locationName
+            _currentLocationId.value = actualLocationId
+            _gribMaps.value = cachedData!!.gribMaps
+            _windShearValues.value = cachedData.windShear
+            _isLoading.value = false
+            _errorMessage.value = null
+            return
+        }
+
+        // Mark this location as loading
+        loadingStatuses[cacheKey] = true
 
         // Cancel any ongoing job first
         viewModelScope.launch {
@@ -71,84 +124,89 @@ class GribViewModel : ViewModel() {
                 Log.e(tag, "Error canceling job: ${e.message}")
             }
 
-            // Start a new job
-            activeJob = viewModelScope.launch(Dispatchers.IO) {
+            // Start a new job for fetching
+            activeJob = viewModelScope.launch {
                 try {
+                    Log.d(tag, "Fetching GRIB data for $locationName (ID: $actualLocationId)")
+
+                    // Update tracking info immediately
                     withContext(Dispatchers.Main) {
                         _isLoading.value = true
-                        _errorMessage.value = null
-                        // Don't clear gribMaps here to prevent UI flicker
-                    }
-
-                    Log.d(tag, "Fetching GRIB data for: $locationName (lat: $latitude, lon: $longitude)")
-
-                    // Update current location
-                    withContext(Dispatchers.Main) {
-                        _currentLocation.value = Pair(latitude, longitude)
                         _locationName.value = locationName
-                    }
+                        _currentLocationId.value = actualLocationId
 
-                    // Use timeout to prevent hanging
-                    val gribMapList = withTimeoutOrNull(10000L) {
-                        try {
-                            gribRepository.getGribMapped(latitude, longitude)
-                        } catch (e: Exception) {
-                            Log.e(tag, "Exception during GRIB data fetch: ${e.message}", e)
-                            null
+                        // Critical: CLEAR existing data when switching locations
+                        // But only if we don't have fresh cached data
+                        if (!isCacheFresh) {
+                            _gribMaps.value = emptyList()
+                            _windShearValues.value = emptyList()
                         }
+                        _errorMessage.value = null
                     }
 
+                    // Fetch data from repository
+                    val gribMapList = withContext(Dispatchers.IO) {
+                        gribRepository.getGribMapped(latitude, longitude)
+                    }
+
+                    // Verify we're still processing the correct location
+                    if (actualLocationId != _currentLocationId.value) {
+                        Log.d(tag, "Location changed during fetch, discarding results")
+                        loadingStatuses[cacheKey] = false
+                        return@launch
+                    }
+
+                    // Process the results
                     if (gribMapList != null && gribMapList.isNotEmpty()) {
                         val sortedList = gribMapList.sortedBy { it.altitude }
                         Log.d(tag, "Received GRIB data for $locationName - ${sortedList.size} altitude levels")
 
-                        // Calculate wind shear safely
-                        val shearValues = try {
-                            if (sortedList.size > 1) {
-                                windShear(sortedList)
-                            } else {
-                                emptyList()
-                            }
-                        } catch (e: Exception) {
-                            Log.e(tag, "Error calculating wind shear: ${e.message}", e)
-                            emptyList()
-                        }
+                        // Calculate wind shear
+                        val shearValues = if (sortedList.size > 1) windShear(sortedList) else emptyList()
 
-                        // Update cache on background thread
-                        cachedGribMaps = sortedList
-                        cachedWindShear = shearValues
+                        // Cache the results with location ID and timestamp
+                        cache[cacheKey] = CacheEntry(
+                            gribMaps = sortedList,
+                            windShear = shearValues,
+                            locationId = actualLocationId,
+                            timestamp = System.currentTimeMillis()
+                        )
 
-                        // Update observable values on main thread
+                        // Update UI
                         withContext(Dispatchers.Main) {
-                            _gribMaps.value = sortedList
-                            _windShearValues.value = shearValues
+                            // Only update if we're still on the same location
+                            if (actualLocationId == _currentLocationId.value) {
+                                _gribMaps.value = sortedList
+                                _windShearValues.value = shearValues
+                                _errorMessage.value = null
+                            } else {
+                                Log.d(tag, "Location changed before UI update, discarding results")
+                            }
                             _isLoading.value = false
-                            _errorMessage.value = null
                         }
                     } else {
-                        Log.w(tag, "No GRIB data available for $locationName")
-
+                        // No data available for this location
+                        Log.d(tag, "No GRIB data available for $locationName")
                         withContext(Dispatchers.Main) {
-                            // We'll show an error but not clear existing data
+                            // Ensure we clear any existing data
+                            _gribMaps.value = emptyList()
+                            _windShearValues.value = emptyList()
                             _errorMessage.value = "Ingen tilgjengelig høydedata - kan kun vise data for Sør-Norge"
                             _isLoading.value = false
-
-                            // We still update the coordinates and name so we show something
-                            _currentLocation.value = Pair(latitude, longitude)
-                            _locationName.value = locationName
                         }
                     }
                 } catch (e: Exception) {
-                    Log.e(tag, "Error fetching GRIB data for $locationName", e)
-
+                    // Handle errors
+                    Log.e(tag, "Error fetching GRIB data: ${e.message}")
                     withContext(Dispatchers.Main) {
+                        _gribMaps.value = emptyList()
+                        _windShearValues.value = emptyList()
                         _errorMessage.value = "Feil ved henting av høydevind-data: ${e.message}"
                         _isLoading.value = false
-
-                        // We still update coordinates and name
-                        _currentLocation.value = Pair(latitude, longitude)
-                        _locationName.value = locationName
                     }
+                } finally {
+                    // Always mark loading as complete
+                    loadingStatuses[cacheKey] = false
                 }
             }
         }
@@ -157,30 +215,35 @@ class GribViewModel : ViewModel() {
     fun clearData() {
         viewModelScope.launch {
             try {
-                withContext(Dispatchers.Main) {
-                    _isLoading.value = true
-                }
-
-                // Cancel any active job
                 activeJob?.cancelAndJoin()
 
-                // Clear data safely on main thread
                 withContext(Dispatchers.Main) {
-                    cachedGribMaps = emptyList()
-                    cachedWindShear = emptyList()
-                    _currentLocation.value = null
-                    _locationName.value = null
                     _gribMaps.value = emptyList()
                     _windShearValues.value = emptyList()
+                    _locationName.value = null
                     _errorMessage.value = null
                     _isLoading.value = false
                 }
             } catch (e: Exception) {
-                Log.e(tag, "Error in clearData: ${e.message}", e)
-                withContext(Dispatchers.Main) {
-                    _isLoading.value = false
-                }
+                Log.e(tag, "Error in clearData: ${e.message}")
             }
+        }
+    }
+
+    fun clearCache() {
+        cache.clear()
+        loadingStatuses.clear()
+    }
+
+    // Auto-clean cache
+    fun cleanExpiredCache() {
+        val currentTime = System.currentTimeMillis()
+        val expiredEntries = cache.filter { (_, entry) ->
+            (currentTime - entry.timestamp) > 60 * 60 * 1000 // 1 hour
+        }.keys
+
+        expiredEntries.forEach { key ->
+            cache.remove(key)
         }
     }
 }

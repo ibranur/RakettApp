@@ -26,6 +26,7 @@ class MainActivity : ComponentActivity() {
             .build()
     }
 
+    // Use single ViewModel instance for the whole app
     private val viewModel by viewModels<SavedLocationViewModel>(
         factoryProducer = {
             object : ViewModelProvider.Factory {
@@ -47,6 +48,8 @@ class MainActivity : ComponentActivity() {
             Rakett_AppTheme {
                 val state by viewModel.state.collectAsState()
                 Log.d(TAG, "Setting content with ${state.launchPoints.size} launch points")
+
+                // Pass the state and event handler to Navigation
                 Navigation(state = state, onEvent = viewModel::onEvent)
             }
         }

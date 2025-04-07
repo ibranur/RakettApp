@@ -174,7 +174,6 @@ fun AltitudeWeatherList(
         }
     }
 }
-
 @Composable
 fun AltitudeWeatherSection(
     modifier: Modifier = Modifier,
@@ -184,6 +183,32 @@ fun AltitudeWeatherSection(
     errorMessage: String? = null,
     title: String = "Værdata i høyden nå"
 ) {
+    // Performance optimization with remember for calculated values
+    val hasData by remember(gribMaps) { mutableStateOf(gribMaps.isNotEmpty()) }
+    val adjustedShearValues by remember(windShearValues, gribMaps) {
+        mutableStateOf(
+            if (windShearValues.size < gribMaps.size - 1) {
+                // Pad wind shear values if there are too few
+                windShearValues + List(gribMaps.size - 1 - windShearValues.size) { 0.0 }
+            } else if (gribMaps.size > 1) {
+                // Trim wind shear values if there are too many
+                windShearValues.take((gribMaps.size - 1).coerceAtLeast(0))
+            } else {
+                emptyList()
+            }
+        )
+    }
+
+    // Create combined display items
+    val displayItems by remember(gribMaps, adjustedShearValues) {
+        mutableStateOf(
+            gribMaps.mapIndexed { index, gribMap ->
+                val windShear = if (index < adjustedShearValues.size) adjustedShearValues[index] else 0.0
+                Pair(gribMap, windShear)
+            }
+        )
+    }
+
     Column(modifier = modifier) {
         // Only show title if provided
         if (title.isNotEmpty()) {
@@ -194,22 +219,59 @@ fun AltitudeWeatherSection(
             )
         }
 
-        // Only show error message if provided and no GRIB data is available
-        if (!errorMessage.isNullOrEmpty() && gribMaps.isEmpty() && !isLoading) {
-            Text(
-                text = errorMessage,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(8.dp),
-                textAlign = TextAlign.Center
-            )
-        } else {
-            // Pass along the GRIB data for display
-            AltitudeWeatherList(
-                modifier = Modifier.fillMaxWidth(),
-                gribMaps = gribMaps,
-                windShearValues = windShearValues,
-                isLoading = isLoading
-            )
+        when {
+            // Show loading indicator
+            isLoading -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+
+            // Show error if there's no GRIB data
+            !hasData -> {
+                val message = errorMessage ?: "Ingen tilgjengelig høydedata - kan kun vise data for Sør-Norge"
+                Text(
+                    text = message,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    textAlign = TextAlign.Center
+                )
+            }
+
+            // Show the data
+            else -> {
+                // Important: Set a fixed height for the LazyColumn to resolve the infinite height constraint error
+                LazyColumn(
+                    modifier = Modifier.height(300.dp),
+                    contentPadding = PaddingValues(horizontal = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(3.dp)
+                ) {
+                    items(displayItems) { pair ->
+                        val gribMap = pair.first
+                        val windShear = pair.second
+
+                        // Safe defaults in case of NaN or invalid values
+                        val safeAltitude = if (gribMap.altitude.isNaN()) 0 else gribMap.altitude.roundToInt()
+                        val safeWindSpeed = if (gribMap.wind_speed.isNaN()) 0 else gribMap.wind_speed.roundToInt()
+                        val safeWindDirection = if (gribMap.wind_direction.isNaN()) 0 else gribMap.wind_direction.roundToInt()
+                        val safeWindShear = if (windShear.isNaN()) 0.0 else windShear
+
+                        AltitudeWeatherCard(
+                            altitude = safeAltitude,
+                            windSpeed = safeWindSpeed,
+                            windDirection = safeWindDirection,
+                            windShear = safeWindShear
+                        )
+                    }
+                }
+            }
         }
     }
 }

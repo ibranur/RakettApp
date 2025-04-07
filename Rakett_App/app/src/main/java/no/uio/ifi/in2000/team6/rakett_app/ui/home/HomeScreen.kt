@@ -45,6 +45,8 @@ fun HomeScreen(
     Log.d(tag, "Rendering HomeScreen with state: $state")
 
     val scope = rememberCoroutineScope()
+
+    // Main scroll state for the entire screen
     val scrollState = rememberScrollState()
 
     // Weather forecast
@@ -75,54 +77,35 @@ fun HomeScreen(
 
     // Remember the selected point from state
     val selectedPoint = state?.launchPoints?.find { it.selected }
-    // Safe data fetching with timeout
+
+    // Safe data fetching with optimal performance
     fun safeGribFetch(location: LaunchPoint) {
         isProcessing = true // Disable UI during fetch
 
         scope.launch {
             try {
-                Log.d(tag, "Starting safe GRIB fetch for ${location.name}")
+                Log.d(tag, "Fetching data for ${location.name}")
+
+                // Update persistent location tracking
+                gribViewModel.setSelectedLocationId(location.id)
 
                 // First update the UI to show we selected this location
-                withContext(Dispatchers.Main) {
-                    viewModel.selectLocation(location, false)  // false = don't force fetch
-                }
+                viewModel.selectLocation(location, false)  // false = don't force fetch
 
-                // Wait a moment to ensure UI updates
-                delay(100)
+                // Fetch GRIB data - this will clear any previous data first
+                gribViewModel.fetchGribData(
+                    location.latitude,
+                    location.longitude,
+                    location.name  // Passing name for proper tracking
+                )
 
-                // Now attempt to fetch GRIB data with timeout
-                withTimeoutOrNull(8000) {
-                    try {
-                        // Use the improved fetchGribData method
-                        gribViewModel.fetchGribData(
-                            location.latitude,
-                            location.longitude,
-                            location.name
-                        )
-                        true
-                    } catch (e: Exception) {
-                        Log.e(tag, "Error fetching GRIB data: ${e.message}", e)
-                        false
-                    }
-                } ?: run {
-                    // Timeout occurred, but don't show error just log it
-                    Log.w(tag, "GRIB data fetch timed out for ${location.name}")
-                }
-
-                // Get weather forecast separately from GRIB data
-                try {
-                    viewModel.getFourHourForecast(location.latitude, location.longitude)
-                } catch (e: Exception) {
-                    Log.e(tag, "Error fetching forecast: ${e.message}", e)
-                }
+                // Get weather forecast separately
+                viewModel.getFourHourForecast(location.latitude, location.longitude)
 
             } catch (e: Exception) {
-                Log.e(tag, "Error in safe fetch: ${e.message}", e)
+                Log.e(tag, "Error fetching location data: ${e.message}", e)
             } finally {
-                withContext(Dispatchers.Main) {
-                    isProcessing = false // Re-enable UI
-                }
+                isProcessing = false // Re-enable UI
             }
         }
     }
@@ -159,10 +142,12 @@ fun HomeScreen(
         )
     }
 
+    // IMPORTANT: Wrap all content in Column with verticalScroll to enable full screen scrolling
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(top = 16.dp, bottom = 8.dp),
+            .padding(top = 16.dp, bottom = 8.dp)
+            .verticalScroll(scrollState), // Make entire screen scrollable
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -381,10 +366,10 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(8.dp))
         }
 
-        // Main content with vertical scroll
+        // Main content section
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
                 .padding(horizontal = 16.dp)
         ) {
             // Tittel for bakkenivå
@@ -481,7 +466,7 @@ fun HomeScreen(
             }
 
             // Legg til litt ekstra plass nederst så alt innhold er synlig
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(64.dp))
         }
     }
 }

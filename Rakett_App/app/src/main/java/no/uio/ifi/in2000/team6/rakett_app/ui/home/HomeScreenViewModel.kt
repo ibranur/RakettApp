@@ -48,8 +48,14 @@ class HomeScreenViewModel(
     // Repository for weather data
     private val _locationForecastRepository = LocationForecastRepository()
 
-    // Cache for forecast data
-    private val forecastCache = mutableMapOf<Pair<Double, Double>, List<FourHour>>()
+    // Cache for forecast data with time-based expiration
+    private val forecastCache = mutableMapOf<String, CachedForecast>()
+
+    // Data class for forecast cache
+    private data class CachedForecast(
+        val forecast: List<FourHour>,
+        val timestamp: Long
+    )
 
     init {
         Log.d(tag, "Initializing HomeScreenViewModel")
@@ -83,10 +89,22 @@ class HomeScreenViewModel(
     }
 
     /**
-     * Select a new location and fetch its weather data
+     * Update UI to reflect selected location without triggering fetches
+     */
+    fun ensureSelectedLocationConsistency(launchPoint: LaunchPoint) {
+        viewModelScope.launch(Dispatchers.Main) {
+            // Only update if needed
+            if (_selectedLocation.value?.id != launchPoint.id) {
+                _selectedLocation.value = launchPoint
+            }
+        }
+    }
+
+    /**
+     * Select a new location and fetch its weather data (with option to force fetch)
      */
     fun selectLocation(launchPoint: LaunchPoint, forceFetch: Boolean = true) {
-        viewModelScope.launch(Dispatchers.Main) {
+        viewModelScope.launch {
             try {
                 Log.d(tag, "Selecting location: ${launchPoint.name}")
 
@@ -94,16 +112,18 @@ class HomeScreenViewModel(
                 _selectedLocation.value = launchPoint
 
                 // Check if we have cached data
-                val coords = Pair(launchPoint.latitude, launchPoint.longitude)
-                val cachedForecast = forecastCache[coords]
+                val cacheKey = "${launchPoint.latitude}_${launchPoint.longitude}"
+                val cachedForecast = forecastCache[cacheKey]
+                val isCacheValid = cachedForecast != null &&
+                        (System.currentTimeMillis() - cachedForecast.timestamp) < 30 * 60 * 1000 // 30 minutes
 
-                if (cachedForecast != null && !forceFetch) {
+                if (isCacheValid && !forceFetch) {
                     // Use cached data immediately
                     Log.d(tag, "Using cached forecast data for: ${launchPoint.name}")
                     _fourHourUIState.update {
-                        it.copy(list = cachedForecast)
+                        it.copy(list = cachedForecast!!.forecast)
                     }
-                } else if (forceFetch || _currentCoordinates.value != coords) {
+                } else if (forceFetch || _currentCoordinates.value != Pair(launchPoint.latitude, launchPoint.longitude)) {
                     // Show loading state if we're forcing a fetch or location changed
                     _fourHourUIState.update {
                         it.copy(list = emptyList())
@@ -129,12 +149,12 @@ class HomeScreenViewModel(
                 }
 
                 // Update coordinates manager only if forcing fetch or coordinates changed
-                if (forceFetch || _currentCoordinates.value != coords) {
-                    _currentCoordinates.value = coords
+                if (forceFetch || _currentCoordinates.value != Pair(launchPoint.latitude, launchPoint.longitude)) {
+                    _currentCoordinates.value = Pair(launchPoint.latitude, launchPoint.longitude)
                     CoordinatesManager.updateLocation(launchPoint.latitude, launchPoint.longitude)
 
                     // Fetch weather data if needed
-                    if (cachedForecast == null || forceFetch) {
+                    if (!isCacheValid || forceFetch) {
                         getFourHourForecast(launchPoint.latitude, launchPoint.longitude)
                     }
                 }
@@ -153,28 +173,29 @@ class HomeScreenViewModel(
         activeForecastJob?.cancel()
 
         // Check for cached data
-        val coords = Pair(latitude, longitude)
-        val cachedForecast = forecastCache[coords]
+        val cacheKey = "${latitude}_${longitude}"
+        val cachedForecast = forecastCache[cacheKey]
+        val isCacheValid = cachedForecast != null &&
+                (System.currentTimeMillis() - cachedForecast.timestamp) < 30 * 60 * 1000 // 30 minutes
 
-        if (cachedForecast != null) {
+        if (isCacheValid) {
             // Use cached data immediately
             Log.d(tag, "Using cached forecast data for: $latitude, $longitude")
             _fourHourUIState.update {
-                it.copy(list = cachedForecast)
+                it.copy(list = cachedForecast!!.forecast)
             }
+            return
         }
 
-        // Start new job to get fresh data (even if we showed cached data)
+        // Start new job to get fresh data
         activeForecastJob = viewModelScope.launch(Dispatchers.IO) {
             try {
                 Log.d(tag, "Getting forecast for lat: $latitude, lon: $longitude")
 
-                // Only clear current forecast data if we don't have cached data
-                if (cachedForecast == null) {
-                    withContext(Dispatchers.Main) {
-                        _fourHourUIState.update {
-                            it.copy(list = emptyList())
-                        }
+                // Show loading state
+                withContext(Dispatchers.Main) {
+                    _fourHourUIState.update {
+                        it.copy(list = emptyList())
                     }
                 }
 
@@ -182,8 +203,11 @@ class HomeScreenViewModel(
                 val fourHourForecast = _locationForecastRepository.getNextFourHourForecast(latitude, longitude)
                 Log.d(tag, "Got forecast with ${fourHourForecast.size} hours")
 
-                // Cache the new data
-                forecastCache[coords] = fourHourForecast
+                // Cache the new data with timestamp
+                forecastCache[cacheKey] = CachedForecast(
+                    forecast = fourHourForecast,
+                    timestamp = System.currentTimeMillis()
+                )
 
                 // Update UI with new data
                 withContext(Dispatchers.Main) {
@@ -194,13 +218,9 @@ class HomeScreenViewModel(
 
             } catch (e: Exception) {
                 Log.e(tag, "Error getting forecast", e)
-
-                // Only clear UI if we don't have cached data
-                if (cachedForecast == null) {
-                    withContext(Dispatchers.Main) {
-                        _fourHourUIState.update {
-                            it.copy(list = emptyList())
-                        }
+                withContext(Dispatchers.Main) {
+                    _fourHourUIState.update {
+                        it.copy(list = emptyList())
                     }
                 }
             }
@@ -208,7 +228,7 @@ class HomeScreenViewModel(
     }
 
     /**
-     * Clear all weather data - useful when changing screens or during location edit
+     * Clear weather data cache
      */
     fun clearWeatherData() {
         forecastCache.clear()
