@@ -113,7 +113,7 @@ fun AltitudeWeatherList(
 ) {
     if (isLoading) {
         Box(
-            modifier = modifier.fillMaxWidth(),
+            modifier = modifier.fillMaxWidth().height(100.dp),
             contentAlignment = Alignment.Center
         ) {
             CircularProgressIndicator()
@@ -123,7 +123,7 @@ fun AltitudeWeatherList(
 
     if (gribMaps.isEmpty()) {
         Box(
-            modifier = modifier.fillMaxWidth(),
+            modifier = modifier.fillMaxWidth().padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(text = "Ingen høydedata tilgjengelig  -  Bare data for Sør-Norge",
@@ -140,18 +140,19 @@ fun AltitudeWeatherList(
         windShearValues.take(gribMaps.size)
     }
 
-    LazyColumn(
-        modifier = modifier,
-        contentPadding = PaddingValues(horizontal = 8.dp),
+    // Use Column instead of LazyColumn for better integration with parent scrolling
+    Column(
+        modifier = modifier.padding(horizontal = 8.dp),
         verticalArrangement = Arrangement.spacedBy(3.dp)
     ) {
-        items(gribMaps.zip(safeWindShearValues)) { (gribMap, windShear) ->
+        gribMaps.zip(safeWindShearValues).forEach { (gribMap, windShear) ->
             AltitudeWeatherCard(
                 altitude = gribMap.altitude.roundToInt(),
                 windSpeed = gribMap.wind_speed.roundToInt(),
                 windDirection = gribMap.wind_direction.roundToInt(),
                 windShear = windShear
             )
+            Spacer(modifier = Modifier.height(3.dp))
         }
     }
 }
@@ -165,10 +166,10 @@ fun AltitudeWeatherSection(
     errorMessage: String? = null,
     title: String = "Værdata i høyden nå"
 ) {
-    Column(modifier = modifier) {
+    Column(modifier = modifier.padding(horizontal = 16.dp)) {
         Text(
             text = title,
-            modifier = Modifier.padding(bottom = 8.dp).padding(horizontal = 40.dp),
+            modifier = Modifier.padding(bottom = 8.dp),
             style = MaterialTheme.typography.headlineSmall
         )
 

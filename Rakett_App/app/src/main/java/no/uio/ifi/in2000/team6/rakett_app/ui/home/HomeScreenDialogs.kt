@@ -57,7 +57,7 @@ fun AddLaunchSiteDialog(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = "Legg til nytt oppskytningssted",
+                    text = "Legg til",
                     style = MaterialTheme.typography.titleLarge,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()

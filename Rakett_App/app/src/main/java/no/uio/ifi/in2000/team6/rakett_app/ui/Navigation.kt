@@ -14,6 +14,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
@@ -51,21 +52,20 @@ fun Navigation(
 ) {
     val navController = rememberNavController()
 
-    // Opprette repos og viewmodels
+    // Opprette viewmodels
     val safetyReportRepository = SafetyReportRepository()
     val homeScreenViewModel = HomeScreenViewModel()
     val startScreenViewModel = StartScreenViewModel(safetyReportRepository)
     val gribViewModel = GribViewModel()
 
-    // Oppdatere værdata når komponenten lages
-    DisposableEffect(state.launchPoints) {
+    // Initialize data for selected launch point
+    LaunchedEffect(state.launchPoints) {
         val selectedPoint = state.launchPoints.find { it.selected }
         if (selectedPoint != null) {
             homeScreenViewModel.getFourHourForecast(selectedPoint.latitude, selectedPoint.longitude)
             gribViewModel.fetchGribData(selectedPoint.latitude, selectedPoint.longitude)
             homeScreenViewModel.updateSelectedLocation(state)
         }
-        onDispose { /* Cleanup hvis nødvendig */ }
     }
 
     Scaffold(
@@ -77,6 +77,15 @@ fun Navigation(
                 startDestination = Screen.Home.route
             ) {
                 composable(route = Screen.Home.route) {
+                    // Launch effect to update data when navigating back to home
+                    LaunchedEffect(Unit) {
+                        val selectedPoint = state.launchPoints.find { it.selected }
+                        if (selectedPoint != null) {
+                            homeScreenViewModel.getFourHourForecast(selectedPoint.latitude, selectedPoint.longitude)
+                            gribViewModel.fetchGribData(selectedPoint.latitude, selectedPoint.longitude)
+                        }
+                    }
+
                     HomeScreen(
                         viewModel = homeScreenViewModel,
                         gribViewModel = gribViewModel,

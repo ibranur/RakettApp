@@ -86,28 +86,29 @@ fun HourCard(
 fun HourShortInfo(
     fourHour: FourHour
 ) {
-    Column(
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = fourHour.hour,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-            val image = getDrawableIdByName(LocalContext.current, fourHour.symbol_code)
-            Image(
-                painter = painterResource(image),
-                contentDescription = "weather symbol",
-                modifier = Modifier
-                    .height(50.dp)
-                    .width(50.dp)
-            )
-            WeatherRatingIndicator(ScoreHour(fourHour))
-        }
+        Text(
+            text = fourHour.hour,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold
+        )
+
+        val image = getDrawableIdByName(LocalContext.current, fourHour.symbol_code)
+        Image(
+            painter = painterResource(image),
+            contentDescription = "Værsymbol",
+            modifier = Modifier
+                .height(50.dp)
+                .width(50.dp)
+        )
+
+        WeatherRatingIndicator(ScoreHour(fourHour))
     }
 }
 
@@ -116,6 +117,7 @@ fun DetailedWeatherDisplay(fourHour: FourHour) {
     Column (
         modifier = Modifier
             .padding(8.dp)
+            .fillMaxWidth()
     ){
         // Use Rows to create a tabular layout
         WeatherRow(label = stringResource(R.string.wind_speed), value = "${fourHour.detailsInstant.wind_speed} m/s")
@@ -143,6 +145,3 @@ fun WeatherRow(label: String, value: String) {
         Text(text = value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
     }
 }
-
-// --- Preview ---
-

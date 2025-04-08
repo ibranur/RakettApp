@@ -23,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -33,11 +34,6 @@ import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPointState
 
 /**
  * En dropdown-meny for å velge, administrere og legge til oppskytningssteder.
- *
- * @param state Gjeldende tilstand for oppskytningspunkter
- * @param onEvent Funksjon for å sende hendelser til ViewModel
- * @param onShowAddDialog Funksjon for å vise dialogboksen for å legge til nytt oppskytningssted
- * @param onShowEditDialog Funksjon for å vise dialogboksen for å redigere oppskytningssted
  */
 @Composable
 fun LaunchSiteDropdown(
@@ -83,20 +79,8 @@ fun LaunchSiteDropdown(
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            modifier = Modifier.fillMaxWidth(0.9f)
+            modifier = Modifier.fillMaxWidth(0.94f) // Match card width better
         ) {
-            // Legg til nytt oppskytningssted
-            DropdownMenuItem(
-                text = { Text("Legg til nytt oppskytningssted") },
-                leadingIcon = { Icon(Icons.Default.Add, "Legg til") },
-                onClick = {
-                    expanded = false
-                    onShowAddDialog()
-                }
-            )
-
-            HorizontalDivider()
-
             // List opp eksisterende oppskytningssteder
             if (state.launchPoints.isEmpty()) {
                 DropdownMenuItem(
@@ -134,6 +118,7 @@ fun LaunchSiteDropdown(
                                 Icon(
                                     Icons.Default.Delete,
                                     contentDescription = "Slett",
+                                    tint = Color.Red, // Make delete icon red
                                     modifier = Modifier
                                         .clickable {
                                             onEvent(LaunchPointEvent.DeleteLaunchPoint(launchPoint))
@@ -145,6 +130,19 @@ fun LaunchSiteDropdown(
                     )
                 }
             }
+
+            // Divider before Add button
+            HorizontalDivider()
+
+            // Legg til nytt oppskytningssted - moved to bottom
+            DropdownMenuItem(
+                text = { Text("Legg til") },
+                leadingIcon = { Icon(Icons.Default.Add, "Legg til") },
+                onClick = {
+                    expanded = false
+                    onShowAddDialog()
+                }
+            )
         }
     }
 }

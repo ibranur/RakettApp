@@ -3,6 +3,8 @@ package no.uio.ifi.in2000.team6.rakett_app.ui.home
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -49,9 +51,11 @@ fun HomeScreen(
     val isLoadingGrib by gribViewModel.isLoading.collectAsState()
     val errorMessage by gribViewModel.errorMessage.collectAsState()
 
+    // Main scrollable column
     Column(
         modifier = modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -69,7 +73,7 @@ fun HomeScreen(
         Text(
             text = "Været på bakkenivå de neste 4 timene",
             style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(horizontal = 40.dp)
+            modifier = Modifier.padding(horizontal = 16.dp)
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -93,14 +97,11 @@ fun HomeScreen(
                 )
             }
         } else {
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(3.dp),
-                modifier = Modifier.weight(1f)
-            ) {
-                items(fourHourUIState.list) { fourHour ->
-                    if (fourHour != null) {
-                        ExpandableCard(fourHour = fourHour)
-                    }
+            // Display each card individually instead of using LazyColumn
+            fourHourUIState.list.forEach { fourHour ->
+                if (fourHour != null) {
+                    ExpandableCard(fourHour = fourHour)
+                    Spacer(modifier = Modifier.height(3.dp))
                 }
             }
         }
@@ -116,6 +117,9 @@ fun HomeScreen(
             errorMessage = errorMessage,
             title = "Værdata i høyden nå"
         )
+
+        // Add extra space at the bottom for better scrolling
+        Spacer(modifier = Modifier.height(24.dp))
     }
 
     // Dialoger for å legge til og redigere oppskytningssteder
