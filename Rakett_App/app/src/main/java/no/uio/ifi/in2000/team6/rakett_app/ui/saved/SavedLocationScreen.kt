@@ -1,55 +1,54 @@
 package no.uio.ifi.in2000.team6.rakett_app.ui.saved
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPointEvent
-import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPointState
-import no.uio.ifi.in2000.team6.rakett_app.ui.cards.CoordCard
 
+/**
+ * Tom skjerm som erstatter den gamle "Lagret"-skjermen.
+ * Informerer brukeren om at funksjonaliteten er flyttet til hjemmeskjermen.
+ */
 @Composable
-fun SavedLocationScreen(state: LaunchPointState,
-                        onEvent: (LaunchPointEvent) -> Unit) {
-    Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(onClick = {
-                onEvent(LaunchPointEvent.ShowDialog)
-            }) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add launch point"
-                )
-            }
-        }) { padding ->
+fun EmptySavedScreen() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.Home,
+            contentDescription = null,
+            modifier = Modifier.padding(bottom = 16.dp),
+            tint = MaterialTheme.colorScheme.primary
+        )
 
-        if (state.isAddingLaunchPoint) {
-            AddLaunchPointDialog(state = state, onEvent = onEvent)
-        }
+        Text(
+            text = "Oppskytningssteder",
+            style = MaterialTheme.typography.headlineMedium,
+            textAlign = TextAlign.Center
+        )
 
-        if (state.isUpdatingLaunchPoint) {
-            UpdateDialog(state,onEvent)
-        }
+        Spacer(modifier = Modifier.height(8.dp))
 
-        LazyColumn(
-            contentPadding = padding,
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            items(state.launchPoints) { launchPoint ->
-                CoordCard(
-                    launchPoint = launchPoint,
-                    onClick = onEvent,
-                )
-            }
-        }
+        Text(
+            text = "Du kan velge og administrere oppskytningssteder fra hjemmesiden.",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center
+        )
     }
 }

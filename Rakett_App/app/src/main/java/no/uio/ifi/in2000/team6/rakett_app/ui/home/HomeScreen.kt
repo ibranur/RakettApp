@@ -1,7 +1,5 @@
 package no.uio.ifi.in2000.team6.rakett_app.ui.home
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -9,41 +7,43 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import no.uio.ifi.in2000.team6.rakett_app.data.getSelectedPoint
+import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPoint
+import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPointEvent
+import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPointState
 import no.uio.ifi.in2000.team6.rakett_app.ui.cards.AltitudeWeatherSection
 import no.uio.ifi.in2000.team6.rakett_app.ui.cards.ExpandableCard
 
-
-// Her er endringene du trenger å gjøre i HomeScreen.kt:
-
+/**
+ * Hovedskjermen som viser værdata for valgt oppskytningssted og
+ * lar brukeren administrere oppskytningssteder.
+ */
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
     viewModel: HomeScreenViewModel,
-    gribViewModel: GribViewModel  // Legg til denne parameteren
+    gribViewModel: GribViewModel,
+    state: LaunchPointState,
+    onEvent: (LaunchPointEvent) -> Unit
 ) {
+    // Dialog-tilstander
+    var showAddDialog by remember { mutableStateOf(false) }
+    var editingLaunchPoint by remember { mutableStateOf<LaunchPoint?>(null) }
 
-    val temperature by viewModel.temperatureState.collectAsState()
-    val windSpeed by viewModel.windSpeedState.collectAsState()
-    val windDirection by viewModel.windDirectionState.collectAsState()
-
-    var latitude by remember { mutableStateOf("59.9139") }
-    var longitude by remember { mutableStateOf("10.7522") }
-
-    //Dropdown meny status
-    var expanded by remember { mutableStateOf(false) }
-    val savedCoordinates by viewModel.savedCoordinates.collectAsState()
-
-    val launchPointState by viewModel.launchPointState.collectAsState()
-
-    //weather forecast
+    // Værdata-tilstander
     val fourHourUIState by viewModel.fourHourUIState.collectAsState()
 
-    // Hente Grib-data
+    // Oppdater værdata når et nytt oppskytningssted velges
+    LaunchedEffect(state.launchPoints) {
+        val selectedPoint = state.launchPoints.find { it.selected }
+        if (selectedPoint != null) {
+            viewModel.getFourHourForecast(selectedPoint.latitude, selectedPoint.longitude)
+            gribViewModel.fetchGribData(selectedPoint.latitude, selectedPoint.longitude)
+            viewModel.updateSelectedLocation(state)
+        }
+    }
+
+    // Grib-data
     val gribMaps by gribViewModel.gribMaps.collectAsState()
     val windShearValues by gribViewModel.windShearValues.collectAsState()
     val isLoadingGrib by gribViewModel.isLoading.collectAsState()
@@ -52,41 +52,62 @@ fun HomeScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
+            .padding(vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = getSelectedPoint(launchPointState.launchPoints),
-            modifier = Modifier.padding(bottom = 8.dp).padding(horizontal = 40.dp),
-            fontSize = 25.sp,
-            fontWeight = FontWeight.Bold,
+        // Dropdown for valg av oppskytningssted
+        LaunchSiteDropdown(
+            state = state,
+            onEvent = onEvent,
+            onShowAddDialog = { showAddDialog = true },
+            onShowEditDialog = { launchPoint -> editingLaunchPoint = launchPoint }
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Værdata for de neste 4 timene på bakkenivå
         Text(
             text = "Været på bakkenivå de neste 4 timene",
             style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(horizontal = 40.dp))
-        Spacer(modifier = Modifier.height(16.dp))
+            modifier = Modifier.padding(horizontal = 40.dp)
+        )
 
-        // Display weather data
-        Column {
-            LazyColumn (
-                verticalArrangement = Arrangement.spacedBy(3.dp)
-            )
-            {
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Viser værdata for de neste 4 timene
+        if (fourHourUIState.list.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = if (state.launchPoints.isEmpty())
+                        "Legg til et oppskytningssted for å se værdata"
+                    else if (state.launchPoints.none { it.selected })
+                        "Velg et oppskytningssted for å se værdata"
+                    else
+                        "Laster værdata...",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+        } else {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(3.dp),
+                modifier = Modifier.weight(1f)
+            ) {
                 items(fourHourUIState.list) { fourHour ->
                     if (fourHour != null) {
-                        ExpandableCard(
-                            fourHour = fourHour,
-                        )
+                        ExpandableCard(fourHour = fourHour)
                     }
                 }
             }
         }
 
-        //høydevind
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
+        // Høydevind-seksjon
         AltitudeWeatherSection(
             modifier = Modifier.fillMaxWidth(),
             gribMaps = gribMaps,
@@ -95,30 +116,21 @@ fun HomeScreen(
             errorMessage = errorMessage,
             title = "Værdata i høyden nå"
         )
+    }
 
-        //Dropdown menu - behold denne delen uendret
-        //Box {
-        //    Button(onClick = { expanded = true }) {
-        //        Text("Saved Coordinates")
-        //    }
-        //    DropdownMenu(
-        //        expanded = expanded,
-        //        onDismissRequest = {expanded = false}
-        //    ) {
-        //        savedCoordinates.forEach { coordinate ->
-        //            DropdownMenuItem(
-        //                text = {Text("${coordinate.first}, ${coordinate.second}")},
-        //                onClick = {
-        //                    latitude = coordinate.first.toString()
-        //                    longitude = coordinate.second.toString()
-        //                    expanded = false
-        //                }
-        //            )
-        //        }
-        //    }
-        //}
+    // Dialoger for å legge til og redigere oppskytningssteder
+    if (showAddDialog) {
+        AddLaunchSiteDialog(
+            onEvent = onEvent,
+            onDismiss = { showAddDialog = false }
+        )
+    }
+
+    editingLaunchPoint?.let { launchPoint ->
+        EditLaunchSiteDialog(
+            launchPoint = launchPoint,
+            onEvent = onEvent,
+            onDismiss = { editingLaunchPoint = null }
+        )
     }
 }
-
-
-
