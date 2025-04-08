@@ -9,15 +9,22 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import no.uio.ifi.in2000.team6.rakett_app.data.getSelectedPoint
+import no.uio.ifi.in2000.team6.rakett_app.ui.cards.AltitudeWeatherSection
 import no.uio.ifi.in2000.team6.rakett_app.ui.cards.ExpandableCard
 
-@RequiresApi(Build.VERSION_CODES.O)
+
+// Her er endringene du trenger å gjøre i HomeScreen.kt:
+
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    viewModel: HomeScreenViewModel
+    viewModel: HomeScreenViewModel,
+    gribViewModel: GribViewModel  // Legg til denne parameteren
 ) {
 
     val temperature by viewModel.temperatureState.collectAsState()
@@ -33,9 +40,14 @@ fun HomeScreen(
 
     val launchPointState by viewModel.launchPointState.collectAsState()
 
-
     //weather forecast
     val fourHourUIState by viewModel.fourHourUIState.collectAsState()
+
+    // Hente Grib-data
+    val gribMaps by gribViewModel.gribMaps.collectAsState()
+    val windShearValues by gribViewModel.windShearValues.collectAsState()
+    val isLoadingGrib by gribViewModel.isLoading.collectAsState()
+    val errorMessage by gribViewModel.errorMessage.collectAsState()
 
     Column(
         modifier = modifier
@@ -45,7 +57,10 @@ fun HomeScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = getSelectedPoint(launchPointState.launchPoints)
+            text = getSelectedPoint(launchPointState.launchPoints),
+            modifier = Modifier.padding(bottom = 8.dp).padding(horizontal = 40.dp),
+            fontSize = 25.sp,
+            fontWeight = FontWeight.Bold,
         )
         Text(
             text = "Været på bakkenivå de neste 4 timene",
@@ -67,33 +82,42 @@ fun HomeScreen(
                     }
                 }
             }
-
         }
 
-        //Dropdown menu
-//        Box {
-//            Button(onClick = { expanded = true }) {
-//                Text("Saved Coordinates")
-//            }
-//            DropdownMenu(
-//                expanded = expanded,
-//                onDismissRequest = {expanded = false}
-//            ) {
-//                savedCoordinates.forEach { coordinate ->
-//                    DropdownMenuItem(
-//                        text = {Text("${coordinate.first}, ${coordinate.second}")},
-//                        onClick = {
-//                            latitude = coordinate.first.toString()
-//                            longitude = coordinate.second.toString()
-//                            expanded = false
-//                        }
-//                    )
-//                }
-//            }
-//        }
+        //høydevind
+        Spacer(modifier = Modifier.height(24.dp))
+
+        AltitudeWeatherSection(
+            modifier = Modifier.fillMaxWidth(),
+            gribMaps = gribMaps,
+            windShearValues = windShearValues,
+            isLoading = isLoadingGrib,
+            errorMessage = errorMessage,
+            title = "Værdata i høyden nå"
+        )
+
+        //Dropdown menu - behold denne delen uendret
+        //Box {
+        //    Button(onClick = { expanded = true }) {
+        //        Text("Saved Coordinates")
+        //    }
+        //    DropdownMenu(
+        //        expanded = expanded,
+        //        onDismissRequest = {expanded = false}
+        //    ) {
+        //        savedCoordinates.forEach { coordinate ->
+        //            DropdownMenuItem(
+        //                text = {Text("${coordinate.first}, ${coordinate.second}")},
+        //                onClick = {
+        //                    latitude = coordinate.first.toString()
+        //                    longitude = coordinate.second.toString()
+        //                    expanded = false
+        //                }
+        //            )
+        //        }
+        //    }
+        //}
     }
-
-
 }
 
 

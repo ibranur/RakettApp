@@ -17,7 +17,7 @@ import no.uio.ifi.in2000.team6.rakett_app.data.repository.HourlyWeatherData
 import java.util.Locale
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 data class StartScreenUiState(
     val fromDate: LocalDate? = null,
     val toDate: LocalDate? = null,
@@ -36,7 +36,7 @@ data class StartScreenUiState(
         }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 class StartScreenViewModel(
     private val repository: SafetyReportRepository
 ) : ViewModel() {
