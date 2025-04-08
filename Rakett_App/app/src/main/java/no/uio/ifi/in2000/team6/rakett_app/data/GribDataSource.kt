@@ -12,7 +12,7 @@ import java.net.UnknownHostException
 
 class GribDataSource {
     private val TAG = "GribDataSource"
-    private var date = LocalDate.now()
+    private var date = LocalDate.now() // Bare eksempel for nå
 
     suspend fun fetchGribFile(latitude: Double, longitude: Double): Grib? {
         val url = "https://extend-ededrisobaric.onrender.com/collections/weather_forecast/position?coords=POINT%28$longitude%20$latitude%29&datetime=$date"
