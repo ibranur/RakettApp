@@ -7,13 +7,15 @@ import io.ktor.client.statement.HttpResponse
 import no.uio.ifi.in2000.team6.rakett_app.model.APIClient
 import no.uio.ifi.in2000.team6.rakett_app.model.grib.Grib
 import no.uio.ifi.in2000.team6.rakett_app.model.grib.griberr.Griberr
+import org.threeten.bp.LocalDate
 import java.net.UnknownHostException
 
 class GribDataSource {
     private val TAG = "GribDataSource"
+    private var date = LocalDate.now()
 
     suspend fun fetchGribFile(latitude: Double, longitude: Double): Grib? {
-        val url = "http://69.62.118.138:5000/collections/weather_forecast/position?coords=POINT%28$longitude%20$latitude%29"
+        val url = "https://extend-ededrisobaric.onrender.com/collections/weather_forecast/position?coords=POINT%28$longitude%20$latitude%29&datetime=$date"
         // NB: POINT%28$longitude%20$latitude%29 rekkefølgen er (longitude, latitude) ikke (latitude, longitude) som i locationforecast
         Log.d(TAG, "Henter GRIB-fil fra: $url")
 
