@@ -57,7 +57,7 @@ fun AddLaunchSiteDialog(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = "Legg til",
+                    text = "Legg til lokasjon",
                     style = MaterialTheme.typography.titleLarge,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
@@ -76,7 +76,7 @@ fun AddLaunchSiteDialog(
                 TextField(
                     value = latitude,
                     onValueChange = { latitude = it },
-                    label = { Text("Breddegrad") },
+                    label = { Text("Latitude") },
                     modifier = Modifier.fillMaxWidth(),
                     isError = hasError && (latitude.toDoubleOrNull() == null)
                 )
@@ -84,7 +84,7 @@ fun AddLaunchSiteDialog(
                 TextField(
                     value = longitude,
                     onValueChange = { longitude = it },
-                    label = { Text("Lengdegrad") },
+                    label = { Text("Longitude") },
                     modifier = Modifier.fillMaxWidth(),
                     isError = hasError && (longitude.toDoubleOrNull() == null)
                 )
@@ -178,7 +178,7 @@ fun EditLaunchSiteDialog(
                 TextField(
                     value = latitude,
                     onValueChange = { latitude = it },
-                    label = { Text("Breddegrad") },
+                    label = { Text("Latitude") },
                     modifier = Modifier.fillMaxWidth(),
                     isError = hasError && (latitude.toDoubleOrNull() == null)
                 )
@@ -186,7 +186,7 @@ fun EditLaunchSiteDialog(
                 TextField(
                     value = longitude,
                     onValueChange = { longitude = it },
-                    label = { Text("Lengdegrad") },
+                    label = { Text("Longitude") },
                     modifier = Modifier.fillMaxWidth(),
                     isError = hasError && (longitude.toDoubleOrNull() == null)
                 )

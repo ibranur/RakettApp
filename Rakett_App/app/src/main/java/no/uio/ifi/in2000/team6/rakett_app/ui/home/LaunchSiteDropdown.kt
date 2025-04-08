@@ -136,7 +136,7 @@ fun LaunchSiteDropdown(
 
             // Legg til nytt oppskytningssted - moved to bottom
             DropdownMenuItem(
-                text = { Text("Legg til") },
+                text = { Text("Legg til lokasjon") },
                 leadingIcon = { Icon(Icons.Default.Add, "Legg til") },
                 onClick = {
                     expanded = false
