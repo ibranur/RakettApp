@@ -79,7 +79,7 @@ fun LaunchSiteDropdown(
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            modifier = Modifier.fillMaxWidth(0.94f) // Match card width better
+            modifier = Modifier.fillMaxWidth(0.918f) // Match card width better
         ) {
             // List opp eksisterende oppskytningssteder
             if (state.launchPoints.isEmpty()) {
