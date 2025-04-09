@@ -13,38 +13,63 @@ import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPoint
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPointEvent
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPointState
 
+/**
+ * ViewModel for lagrede oppskytningssteder.
+ * Håndterer forretningslogikk og tilstandsoppdateringer.
+ */
 class SavedLocationViewModel(
     private val repository: LaunchPointRepositoryInterface
-): ViewModel() {
+) : ViewModel() {
 
     private val _state = MutableStateFlow(LaunchPointState())
     private val _launchPoints = repository.getAllLaunchPoints()
 
+    // Kombinerer tilstand med data fra repository
     val state = combine(_state, _launchPoints) { state, launchPoints ->
         state.copy(
             launchPoints = launchPoints
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), LaunchPointState())
 
+    /**
+     * Håndterer hendelser fra brukergrensesnittet.
+     */
     fun onEvent(event: LaunchPointEvent) {
         when (event) {
+            // Håndterer sletting av oppskytningspunkt
             is LaunchPointEvent.DeleteLaunchPoint ->
                 viewModelScope.launch {
                     repository.deleteLaunchPoint(event.launchPoint)
                 }
-            is LaunchPointEvent.setLatitude -> _state.update { it.copy(
-                latitude = event.latitude
-            )}
-            is LaunchPointEvent.setLongitude -> _state.update { it.copy(
-                longitude = event.longitude
-            )}
-            is LaunchPointEvent.setName -> _state.update { it.copy(
-                name = event.name
-            )}
+
+            // Oppdaterer breddegrad i tilstand
+            is LaunchPointEvent.setLatitude -> _state.update {
+                it.copy(
+                    latitude = event.latitude
+                )
+            }
+
+            // Oppdaterer lengdegrad i tilstand
+            is LaunchPointEvent.setLongitude -> _state.update {
+                it.copy(
+                    longitude = event.longitude
+                )
+            }
+
+            // Oppdaterer navn i tilstand
+            is LaunchPointEvent.setName -> _state.update {
+                it.copy(
+                    name = event.name
+                )
+            }
+
+            // Oppdaterer oppskytningspunkt i databasen
             is LaunchPointEvent.UpdateLaunchPoint -> viewModelScope.launch {
                 repository.deselectAllLaunchPoints()
                 repository.updateLaunchPoint(event.launchPoint)
             }
+
+            // Lagrer nytt oppskytningspunkt
             LaunchPointEvent.saveLaunchPoint -> {
                 val latitudeStr = state.value.latitude
                 val longitudeStr = state.value.longitude
@@ -74,20 +99,32 @@ class SavedLocationViewModel(
                     }
                 }
             }
+
+            // Skjuler dialogboks
             LaunchPointEvent.HideDialog -> {
-                _state.update { it.copy(
-                    isAddingLaunchPoint = false
-                )}
+                _state.update {
+                    it.copy(
+                        isAddingLaunchPoint = false
+                    )
+                }
             }
+
+            // Viser dialogboks
             LaunchPointEvent.ShowDialog -> {
-                _state.update { it.copy(
-                    isAddingLaunchPoint = true
-                )}
+                _state.update {
+                    it.copy(
+                        isAddingLaunchPoint = true
+                    )
+                }
             }
+
+            // Veksler oppdateringsdialog
             LaunchPointEvent.ToggleUpdateDialog -> {
-                _state.update { it.copy(
-                    isUpdatingLaunchPoint = !it.isUpdatingLaunchPoint,
-                )}
+                _state.update {
+                    it.copy(
+                        isUpdatingLaunchPoint = !it.isUpdatingLaunchPoint,
+                    )
+                }
             }
         }
     }

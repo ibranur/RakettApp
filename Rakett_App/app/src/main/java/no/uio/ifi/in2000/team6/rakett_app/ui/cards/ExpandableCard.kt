@@ -90,7 +90,7 @@ val fourHourTest = FourHour(
         probability_of_precipitation = 3.0,
         probability_of_thunder = 3.0
     ),
-    hour = "25:00",
+    hour = "14:00",
     symbol_code = "fair_day"
 )
 @Preview(showBackground = true)

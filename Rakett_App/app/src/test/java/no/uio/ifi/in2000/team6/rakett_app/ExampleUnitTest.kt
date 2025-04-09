@@ -3,17 +3,16 @@ package no.uio.ifi.in2000.team6.rakett_app
 import kotlinx.coroutines.runBlocking
 import no.uio.ifi.in2000.team6.rakett_app.data.GribDataSource
 import no.uio.ifi.in2000.team6.rakett_app.data.LocationForecastDatasource
-import no.uio.ifi.in2000.team6.rakett_app.data.fiveDaysFunction
-import no.uio.ifi.in2000.team6.rakett_app.data.nextFourHours
-import no.uio.ifi.in2000.team6.rakett_app.data.windShear
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.GribRepository
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.LocationForecastRepository
-import no.uio.ifi.in2000.team6.rakett_app.data.toCET
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationForecast.Forecast
 import no.uio.ifi.in2000.team6.rakett_app.model.grib.Grib
+import no.uio.ifi.in2000.team6.rakett_app.utils.fiveDaysFunction
+import no.uio.ifi.in2000.team6.rakett_app.utils.nextFourHours
+import no.uio.ifi.in2000.team6.rakett_app.utils.toCET
+import no.uio.ifi.in2000.team6.rakett_app.utils.windShear
+import org.junit.Assert.assertEquals
 import org.junit.Test
-
-import org.junit.Assert.*
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -27,7 +26,6 @@ class ExampleUnitTest {
     }
 
 
-
     @Test
     fun locforecast() {
 
@@ -35,11 +33,12 @@ class ExampleUnitTest {
         val long = 10.7522
         val locationForecastDS = LocationForecastDatasource()
         var forecast: Forecast?
-        runBlocking{forecast = locationForecastDS.fetchForecast(lat, long)}
+        runBlocking { forecast = locationForecastDS.fetchForecast(lat, long) }
 
         if (forecast == null) return
-        println(forecast!!.properties.timeseries
-            .forEach {println(it.data.next_6_hours?.details)}
+        println(
+            forecast!!.properties.timeseries
+                .forEach { println(it.data.next_6_hours?.details) }
         )
 
 //        runBlocking {
@@ -55,6 +54,7 @@ class ExampleUnitTest {
     fun testConv() {
         println(toCET("2025-04-04T06:00:00Z"))
     }
+
     @Test
     fun summaryFive() {
 
@@ -77,7 +77,7 @@ class ExampleUnitTest {
         val lat = 59.9138
         val long = 10.7522
         var output: Grib?
-        runBlocking{output = ds.fetchGribFile(lat, long)}
+        runBlocking { output = ds.fetchGribFile(lat, long) }
 
         println(output.toString())
         println(output?.ranges!!.temperature.values)
@@ -92,7 +92,7 @@ class ExampleUnitTest {
         val lat = 59.9138
         val long = 10.7522
 
-        runBlocking { println(rep.getGribMapped(lat,long).toString())}
+        runBlocking { println(rep.getGribMapped(lat, long).toString()) }
 
     }
 
@@ -107,7 +107,7 @@ class ExampleUnitTest {
 
         runBlocking {
 
-            val grblist =  rep.getGribMapped(lat,long)
+            val grblist = rep.getGribMapped(lat, long)
             if (grblist != null) windShear(grblist).forEach { println(it) }
             else print("fail")
 
@@ -125,7 +125,7 @@ class ExampleUnitTest {
 
 
         runBlocking {
-            nextFourHours(locationForecastDS.fetchForecast(lat, long)!!).forEach{println(it)}
+            nextFourHours(locationForecastDS.fetchForecast(lat, long)!!).forEach { println(it) }
         }
     }
 

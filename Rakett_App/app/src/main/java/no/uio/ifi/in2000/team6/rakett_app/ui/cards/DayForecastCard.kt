@@ -100,8 +100,13 @@ fun DayIconDegrees(
         ) {
             Image(
                 painter = painterResource(image),
-                contentDescription = "hei")
-            Text(text = "${fiveDay.air_temperature_max}°", style = MaterialTheme.typography.titleMedium, fontSize = 29.sp)
+                contentDescription = "hei"
+            )
+            Text(
+                text = "${fiveDay.air_temperature_max}°",
+                style = MaterialTheme.typography.titleMedium,
+                fontSize = 29.sp
+            )
         }
 
     }
@@ -110,7 +115,7 @@ fun DayIconDegrees(
 
 @Composable
 fun ValueAndUnit(value: String, unit: String) {
-    Row (
+    Row(
         verticalAlignment = Alignment.Bottom
     ) {
         Text(text = value)
