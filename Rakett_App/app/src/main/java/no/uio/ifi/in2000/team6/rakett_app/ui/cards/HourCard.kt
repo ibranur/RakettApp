@@ -20,10 +20,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.team6.rakett_app.R
+import no.uio.ifi.in2000.team6.rakett_app.data.ScoreHour
+import no.uio.ifi.in2000.team6.rakett_app.data.getDrawableIdByName
 import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.FourHour
 import no.uio.ifi.in2000.team6.rakett_app.ui.Rating.WeatherRatingIndicator
-import no.uio.ifi.in2000.team6.rakett_app.utils.ScoreHour
-import no.uio.ifi.in2000.team6.rakett_app.utils.getDrawableIdByName
 
 // --- Data Classes ---
 

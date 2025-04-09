@@ -1,10 +1,10 @@
 package no.uio.ifi.in2000.team6.rakett_app.data.repository
 
 import no.uio.ifi.in2000.team6.rakett_app.data.GribDataSource
+import no.uio.ifi.in2000.team6.rakett_app.data.toMeters
 import no.uio.ifi.in2000.team6.rakett_app.model.grib.Grib
 import no.uio.ifi.in2000.team6.rakett_app.model.grib.GribMap
 import no.uio.ifi.in2000.team6.rakett_app.model.grib.isobaricLayers
-import no.uio.ifi.in2000.team6.rakett_app.utils.toMeters
 
 class GribRepository {
     private val _gribDataSource = GribDataSource()
