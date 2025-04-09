@@ -2,7 +2,12 @@ package no.uio.ifi.in2000.team6.rakett_app.ui.cards
 
 import DetailedWeatherDisplay
 import HourShortInfo
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,9 +19,11 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -30,27 +37,27 @@ import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.FourHour
 
 @Composable
 fun ExpandableCard(fourHour: FourHour) {
+    // Use rememberSaveable instead of remember to persist state through recompositions
+    var expanded by rememberSaveable { mutableStateOf(false) }
 
-    var expanded by remember { mutableStateOf (false) }
+    // Animate the rotation of the dropdown arrow
     val rotation by animateFloatAsState(
         targetValue = if (expanded) 180f else 0f
     )
+
     Card(
         shape = RoundedCornerShape(8.dp),
-        //elevation = 8.dp,
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clickable (
-                onClick = { expanded = !expanded }
-            ),
+            .clickable {
+                expanded = !expanded
+            },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
-            ),
-
+        ),
     ) {
-        Box (
-        ) {
+        Box {
             Icon(
                 imageVector = Icons.Default.ArrowDropDown,
                 contentDescription = "Drop-Down Arrow",
@@ -62,7 +69,12 @@ fun ExpandableCard(fourHour: FourHour) {
             HourShortInfo(fourHour)
         }
 
-        if (expanded) {
+        // Use AnimatedVisibility for smoother transitions
+        AnimatedVisibility(
+            visible = expanded,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut()
+        ) {
             DetailedWeatherDisplay(fourHour)
         }
     }
@@ -93,6 +105,7 @@ val fourHourTest = FourHour(
     hour = "25:00",
     symbol_code = "fair_day"
 )
+
 @Preview(showBackground = true)
 @Composable
 fun CardPrev() {

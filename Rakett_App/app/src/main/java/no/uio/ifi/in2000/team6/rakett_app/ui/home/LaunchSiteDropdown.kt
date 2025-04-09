@@ -24,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -45,41 +46,42 @@ fun LaunchSiteDropdown(
     var expanded by remember { mutableStateOf(false) }
     val selectedPoint = state.launchPoints.find { it.selected }
 
-    ElevatedCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-    ) {
-        // Hele kortet er klikkbart og åpner dropdown
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { expanded = true }
-                .padding(horizontal = 16.dp, vertical = 16.dp),
-            contentAlignment = Alignment.Center
+    // This box will hold the card and ensure the dropdown is properly aligned
+    Box(modifier = Modifier.fillMaxWidth()) {
+        ElevatedCard(
+            modifier = Modifier.fillMaxWidth()
         ) {
-            // Tekst som viser valgt sted eller standardtekst
-            Text(
-                text = selectedPoint?.name ?: "Velg oppskytningssted",
-                fontSize = 25.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
+            // Hele kortet er klikkbart og åpner dropdown
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { expanded = true }
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                // Tekst som viser valgt sted eller standardtekst
+                Text(
+                    text = selectedPoint?.name ?: "Velg oppskytningssted",
+                    fontSize = 25.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
 
-            // Dropdown-pil
-            Icon(
-                imageVector = Icons.Filled.ArrowDropDown,
-                contentDescription = "Åpne dropdown-meny",
-                modifier = Modifier.align(Alignment.CenterEnd)
-            )
+                // Dropdown-pil
+                Icon(
+                    imageVector = Icons.Filled.ArrowDropDown,
+                    contentDescription = "Åpne dropdown-meny",
+                    modifier = Modifier.align(Alignment.CenterEnd)
+                )
+            }
         }
 
-        // Dropdown-menyen
+        // Dropdown-menyen - aligned with the card above
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            modifier = Modifier.fillMaxWidth(0.918f) // Match card width better
+            modifier = Modifier.fillMaxWidth(0.918f) // Match dropdown width better with box over
         ) {
             // List opp eksisterende oppskytningssteder
             if (state.launchPoints.isEmpty()) {

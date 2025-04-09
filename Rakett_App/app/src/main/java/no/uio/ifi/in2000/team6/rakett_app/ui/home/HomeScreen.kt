@@ -2,9 +2,7 @@ package no.uio.ifi.in2000.team6.rakett_app.ui.home
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -51,75 +49,82 @@ fun HomeScreen(
     val isLoadingGrib by gribViewModel.isLoading.collectAsState()
     val errorMessage by gribViewModel.errorMessage.collectAsState()
 
-    // Main scrollable column
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(vertical = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+    // Main LazyColumn to prevent excessive white space
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(bottom = 0.dp) // No bottom padding
     ) {
-        // Dropdown for valg av oppskytningssted
-        LaunchSiteDropdown(
-            state = state,
-            onEvent = onEvent,
-            onShowAddDialog = { showAddDialog = true },
-            onShowEditDialog = { launchPoint -> editingLaunchPoint = launchPoint }
-        )
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Spacer(modifier = Modifier.height(16.dp))
+            // Dropdown for valg av oppskytningssted
+            Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                LaunchSiteDropdown(
+                    state = state,
+                    onEvent = onEvent,
+                    onShowAddDialog = { showAddDialog = true },
+                    onShowEditDialog = { launchPoint -> editingLaunchPoint = launchPoint }
+                )
+            }
 
-        // Værdata for de neste 4 timene på bakkenivå
-        Text(
-            text = "Været på bakkenivå de neste 4 timene",
-            style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Spacer(modifier = Modifier.height(8.dp))
+            // Værdata for de neste 4 timene på bakkenivå
+            Text(
+                text = "Været på bakkenivå de neste 4 timene",
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+        }
 
         // Viser værdata for de neste 4 timene
         if (fourHourUIState.list.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = if (state.launchPoints.isEmpty())
-                        "Legg til et oppskytningssted for å se værdata"
-                    else if (state.launchPoints.none { it.selected })
-                        "Velg et oppskytningssted for å se værdata"
-                    else
-                        "Laster værdata...",
-                    style = MaterialTheme.typography.bodyLarge
-                )
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = if (state.launchPoints.isEmpty())
+                            "Legg til et oppskytningssted for å se værdata"
+                        else if (state.launchPoints.none { it.selected })
+                            "Velg et oppskytningssted for å se værdata"
+                        else
+                            "Laster værdata...",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
             }
         } else {
-            // Display each card individually instead of using LazyColumn
-            fourHourUIState.list.forEach { fourHour ->
-                if (fourHour != null) {
-                    ExpandableCard(fourHour = fourHour)
-                    Spacer(modifier = Modifier.height(3.dp))
-                }
+            // Display each card with a unique key to ensure independent state
+            itemsIndexed(
+                items = fourHourUIState.list.filterNotNull(),
+                key = { index, item -> "forecast-${item.hour}-$index" }
+            ) { _, fourHour ->
+                ExpandableCard(fourHour = fourHour)
+                Spacer(modifier = Modifier.height(3.dp))
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
         // Høydevind-seksjon
-        AltitudeWeatherSection(
-            modifier = Modifier.fillMaxWidth(),
-            gribMaps = gribMaps,
-            windShearValues = windShearValues,
-            isLoading = isLoadingGrib,
-            errorMessage = errorMessage,
-            title = "Værdata i høyden nå"
-        )
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
 
-        // Add extra space at the bottom for better scrolling
-        Spacer(modifier = Modifier.height(24.dp))
+            AltitudeWeatherSection(
+                modifier = Modifier.fillMaxWidth(),
+                gribMaps = gribMaps,
+                windShearValues = windShearValues,
+                isLoading = isLoadingGrib,
+                errorMessage = errorMessage,
+                title = "Værdata i høyden nå"
+            )
+
+            // No additional space at the bottom
+        }
     }
 
     // Dialoger for å legge til og redigere oppskytningssteder
