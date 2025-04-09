@@ -19,8 +19,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import no.uio.ifi.in2000.team6.rakett_app.R
 import no.uio.ifi.in2000.team6.rakett_app.data.ScoreHour
+import no.uio.ifi.in2000.team6.rakett_app.R
 import no.uio.ifi.in2000.team6.rakett_app.data.getDrawableIdByName
 import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.FourHour
 import no.uio.ifi.in2000.team6.rakett_app.ui.Rating.WeatherRatingIndicator
@@ -89,9 +89,7 @@ fun HourShortInfo(
     Column(
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
+            modifier = Modifier.fillMaxWidth().padding(8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -115,51 +113,21 @@ fun HourShortInfo(
 
 @Composable
 fun DetailedWeatherDisplay(fourHour: FourHour) {
-    Column(
+    Column (
         modifier = Modifier
             .padding(8.dp)
-    ) {
+    ){
         // Use Rows to create a tabular layout
-        WeatherRow(
-            label = stringResource(R.string.wind_speed),
-            value = "${fourHour.detailsInstant.wind_speed} m/s"
-        )
-        WeatherRow(
-            label = stringResource(R.string.wind_gust),
-            value = "${fourHour.detailsInstant.wind_speed_of_gust} m/s"
-        )
-        WeatherRow(
-            label = stringResource(R.string.wind_direction),
-            value = "${fourHour.detailsInstant.wind_from_direction} °"
-        )
-        WeatherRow(
-            label = stringResource(R.string.precipitation),
-            value = "${fourHour.detailsNext1Hour.precipitation_amount} mm"
-        )
-        WeatherRow(
-            label = stringResource(R.string.cloud_cover),
-            value = "${fourHour.detailsInstant.cloud_area_fraction} %"
-        )
-        WeatherRow(
-            label = stringResource(R.string.humidity),
-            value = "${fourHour.detailsInstant.relative_humidity.toInt()} %"
-        )
-        WeatherRow(
-            label = stringResource(R.string.thunder_probability),
-            value = "${fourHour.detailsNext1Hour.probability_of_thunder.toInt()} %"
-        )
-        WeatherRow(
-            label = stringResource(R.string.air_pressure),
-            value = "${fourHour.detailsInstant.air_pressure_at_sea_level} hPa"
-        )
-        WeatherRow(
-            label = stringResource(R.string.air_temperature),
-            value = "${fourHour.detailsInstant.air_temperature} °C"
-        )
-        WeatherRow(
-            label = stringResource(R.string.dew_point),
-            value = "${fourHour.detailsInstant.dew_point_temperature} °C"
-        )
+        WeatherRow(label = stringResource(R.string.wind_speed), value = "${fourHour.detailsInstant.wind_speed} m/s")
+        WeatherRow(label = stringResource(R.string.wind_gust), value = "${fourHour.detailsInstant.wind_speed_of_gust} m/s")
+        WeatherRow(label = stringResource(R.string.wind_direction), value = "${fourHour.detailsInstant.wind_from_direction} °")
+        WeatherRow(label = stringResource(R.string.precipitation), value = "${fourHour.detailsNext1Hour.precipitation_amount} mm")
+        WeatherRow(label = stringResource(R.string.cloud_cover), value = "${fourHour.detailsInstant.cloud_area_fraction} %")
+        WeatherRow(label = stringResource(R.string.humidity), value = "${fourHour.detailsInstant.relative_humidity.toInt()} %")
+        WeatherRow(label = stringResource(R.string.thunder_probability), value = "${fourHour.detailsNext1Hour.probability_of_thunder.toInt()} %")
+        WeatherRow(label = stringResource(R.string.air_pressure), value = "${fourHour.detailsInstant.air_pressure_at_sea_level} hPa")
+        WeatherRow(label = stringResource(R.string.air_temperature), value = "${fourHour.detailsInstant.air_temperature} °C")
+        WeatherRow(label = stringResource(R.string.dew_point), value = "${fourHour.detailsInstant.dew_point_temperature} °C")
     }
 }
 
@@ -172,11 +140,7 @@ fun WeatherRow(label: String, value: String) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(text = label, style = MaterialTheme.typography.bodyMedium)
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Bold
-        )
+        Text(text = value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
     }
 }
 

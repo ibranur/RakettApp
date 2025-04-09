@@ -1,7 +1,5 @@
 package no.uio.ifi.in2000.team6.rakett_app.ui.home
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -13,60 +11,61 @@ import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPointState
 import no.uio.ifi.in2000.team6.rakett_app.data.repository.LocationForecastRepository
 import no.uio.ifi.in2000.team6.rakett_app.data.CoordinatesManager
-import no.uio.ifi.in2000.team6.rakett_app.data.repository.SafetyReportRepository
-import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.FiveDayUIState
 import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.FourHourUIState
 
+/**
+ * ViewModel for hjemmeskjermen som håndterer værdata og koordinater.
+ */
 class HomeScreenViewModel(
-    private val repository: SafetyReportRepository
 ) : ViewModel() {
-
-
-    private val _temperatureState = MutableStateFlow(0.0)
-    val temperatureState: StateFlow<Double> = _temperatureState.asStateFlow()
-
-    private val _windSpeedState = MutableStateFlow(0.0)
-    val windSpeedState: StateFlow<Double> = _windSpeedState.asStateFlow()
-
-    private val _windDirectionState = MutableStateFlow(0.0)
-    val windDirectionState: StateFlow<Double> = _windDirectionState.asStateFlow()
-
-    private val _savedCoordinates = MutableStateFlow<List<Pair<Double, Double>>>(emptyList())
-    val savedCoordinates: StateFlow<List<Pair<Double, Double>>> = _savedCoordinates.asStateFlow()
-
-
+    // Vi bruker LocationForecastRepository direkte
     private val _locationForecastRepository = LocationForecastRepository()
 
-
+    // State for værdata for de nærmeste 4 timene
     private val _fourHourUIState = MutableStateFlow(FourHourUIState())
-    val fourHourUIState =  _fourHourUIState.asStateFlow()
+    val fourHourUIState = _fourHourUIState.asStateFlow()
 
-    private val _launchPointState = MutableStateFlow(LaunchPointState())
-    val launchPointState = _launchPointState.asStateFlow()
-
+    /**
+     * Oppdaterer det valgte oppskytningsstedet basert på state og henter værdata.
+     *
+     * @param state LaunchPointState som inneholder alle oppskytningssteder
+     */
     fun updateSelectedLocation(state: LaunchPointState) {
         viewModelScope.launch(Dispatchers.IO) {
-
-            _launchPointState.update {
-                it.copy(
-                    launchPoints = state.launchPoints
-                )
+            // Oppdater koordinatene for valgt oppskytningssted
+            val selectedPoint = state.launchPoints.find { it.selected }
+            if (selectedPoint != null) {
+                CoordinatesManager.updateLocation(selectedPoint.latitude, selectedPoint.longitude)
+                // Sørg for at værdata oppdateres med de nye koordinatene
+                getFourHourForecast(selectedPoint.latitude, selectedPoint.longitude)
             }
         }
     }
 
-
+    /**
+     * Henter værmelding for de neste fire timene for gitte koordinater.
+     *
+     * @param latitude Breddegrad
+     * @param longitude Lengdegrad
+     */
     fun getFourHourForecast(latitude: Double, longitude: Double) {
         viewModelScope.launch(Dispatchers.IO) {
-            val fourHourForecast = _locationForecastRepository.getNextFourHourForecast(latitude,longitude)
+            try {
+                val fourHourForecast = _locationForecastRepository.getNextFourHourForecast(latitude, longitude)
 
-            _fourHourUIState.update {
-                it.copy(
-                    list = fourHourForecast
-                )
+                _fourHourUIState.update {
+                    it.copy(
+                        list = fourHourForecast
+                    )
+                }
+            } catch (e: Exception) {
+                // Håndter feil ved henting av værdata
+                _fourHourUIState.update {
+                    it.copy(
+                        list = emptyList()
+                    )
+                }
             }
         }
     }
-
-
 }

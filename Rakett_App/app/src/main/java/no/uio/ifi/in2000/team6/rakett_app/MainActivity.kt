@@ -16,38 +16,48 @@ import no.uio.ifi.in2000.team6.rakett_app.ui.Navigation
 import no.uio.ifi.in2000.team6.rakett_app.ui.saved.SavedLocationViewModel
 import no.uio.ifi.in2000.team6.rakett_app.ui.theme.Rakett_AppTheme
 
-
+/**
+ * Hovedaktiviteten som initialiserer appen, setter opp databasen og
+ * håndterer NavigationViewModel for navigasjon.
+ */
 class MainActivity : ComponentActivity() {
 
-
-
+    // Initialiserer databasen ved første tilgang
     private val db by lazy {
         Room.databaseBuilder(applicationContext, LaunchPointDatabase::class.java, "launchPoints.db")
             .fallbackToDestructiveMigration()
             .build()
     }
 
+    // Oppretter ViewModel med factory for å sende inn repository
+    @Suppress("UNCHECKED_CAST")
     private val viewModel by viewModels<SavedLocationViewModel>(
         factoryProducer = {
             object : ViewModelProvider.Factory {
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    // Create repository instance and pass it to ViewModel
+                    // Oppretter repository-instans og sender den til ViewModel
                     val repository = LaunchPointRepository(db.dao)
+                    // Bruker suppress annotation for å unngå advarsel om typekasting
                     return SavedLocationViewModel(repository) as T
                 }
             }
         }
     )
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             Rakett_AppTheme {
+                // Henter state fra ViewModel for å sende til Navigation
                 val state by viewModel.state.collectAsState()
-                Navigation(state = state, onEvent = viewModel::onEvent)
-            }
+
+                // Setter opp navigasjonen med state og event-handler
+                Navigation(
+                    state = state,
+                    onEvent = viewModel::onEvent
+                )
             }
         }
     }
+}
