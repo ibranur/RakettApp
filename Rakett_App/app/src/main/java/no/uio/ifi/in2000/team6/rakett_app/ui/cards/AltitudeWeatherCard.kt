@@ -142,7 +142,7 @@ fun AltitudeWeatherList(
 
     // Use Column instead of LazyColumn for better integration with parent scrolling
     Column(
-        modifier = modifier.padding(horizontal = 8.dp),
+        modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(3.dp)
     ) {
         gribMaps.zip(safeWindShearValues).forEach { (gribMap, windShear) ->

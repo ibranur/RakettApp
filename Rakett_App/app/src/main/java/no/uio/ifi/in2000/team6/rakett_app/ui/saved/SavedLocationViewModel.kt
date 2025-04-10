@@ -71,14 +71,14 @@ class SavedLocationViewModel(
 
             // Lagrer nytt oppskytningspunkt
             LaunchPointEvent.saveLaunchPoint -> {
-                val latitudeStr = state.value.latitude
-                val longitudeStr = state.value.longitude
+                val latitudeStr = _state.value.latitude
+                val longitudeStr = _state.value.longitude
+                val name = _state.value.name
 
                 val latitude = latitudeStr.toDoubleOrNull() ?: 0.0
                 val longitude = longitudeStr.toDoubleOrNull() ?: 0.0
-                val name = state.value.name
 
-                if (name != null) {
+                if (name.isNotBlank()) {
                     val launchPoint = LaunchPoint(
                         latitude = latitude,
                         longitude = longitude,

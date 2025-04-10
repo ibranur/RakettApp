@@ -25,6 +25,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPoint
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPointEvent
+import no.uio.ifi.in2000.team6.rakett_app.utils.CoordinateUtils
 
 /**
  * Dialog for å legge til et nytt oppskytningssted.
@@ -42,6 +43,7 @@ fun AddLaunchSiteDialog(
     var latitude by remember { mutableStateOf("") }
     var longitude by remember { mutableStateOf("") }
     var hasError by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
 
     BasicAlertDialog(
         onDismissRequest = onDismiss
@@ -75,23 +77,31 @@ fun AddLaunchSiteDialog(
 
                 TextField(
                     value = latitude,
-                    onValueChange = { latitude = it },
+                    onValueChange = {
+                        latitude = it
+                        hasError = !CoordinateUtils.validateLatitude(it) && it.isNotBlank()
+                        if (hasError) errorMessage = "Latitude må være mellom -90 og 90"
+                    },
                     label = { Text("Latitude") },
                     modifier = Modifier.fillMaxWidth(),
-                    isError = hasError && (latitude.toDoubleOrNull() == null)
+                    isError = hasError && (latitude.isBlank() || !CoordinateUtils.validateLatitude(latitude))
                 )
 
                 TextField(
                     value = longitude,
-                    onValueChange = { longitude = it },
+                    onValueChange = {
+                        longitude = it
+                        hasError = !CoordinateUtils.validateLongitude(it) && it.isNotBlank()
+                        if (hasError) errorMessage = "Longitude må være mellom -180 og 180"
+                    },
                     label = { Text("Longitude") },
                     modifier = Modifier.fillMaxWidth(),
-                    isError = hasError && (longitude.toDoubleOrNull() == null)
+                    isError = hasError && (longitude.isBlank() || !CoordinateUtils.validateLongitude(longitude))
                 )
 
                 if (hasError) {
                     Text(
-                        text = "Alle felt må fylles ut korrekt",
+                        text = errorMessage.ifEmpty { "Alle felt må fylles ut korrekt" },
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall
                     )
@@ -105,8 +115,11 @@ fun AddLaunchSiteDialog(
                 ) {
                     Button(
                         onClick = {
-                            if (name.isBlank() || latitude.toDoubleOrNull() == null || longitude.toDoubleOrNull() == null) {
+                            if (name.isBlank() ||
+                                !CoordinateUtils.validateLatitude(latitude) ||
+                                !CoordinateUtils.validateLongitude(longitude)) {
                                 hasError = true
+                                errorMessage = "Alle felt må fylles ut korrekt"
                                 return@Button
                             }
 
@@ -144,6 +157,7 @@ fun EditLaunchSiteDialog(
     var latitude by remember { mutableStateOf(launchPoint.latitude.toString()) }
     var longitude by remember { mutableStateOf(launchPoint.longitude.toString()) }
     var hasError by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
 
     BasicAlertDialog(
         onDismissRequest = onDismiss
@@ -177,23 +191,31 @@ fun EditLaunchSiteDialog(
 
                 TextField(
                     value = latitude,
-                    onValueChange = { latitude = it },
+                    onValueChange = {
+                        latitude = it
+                        hasError = !CoordinateUtils.validateLatitude(it) && it.isNotBlank()
+                        if (hasError) errorMessage = "Latitude må være mellom -90 og 90"
+                    },
                     label = { Text("Latitude") },
                     modifier = Modifier.fillMaxWidth(),
-                    isError = hasError && (latitude.toDoubleOrNull() == null)
+                    isError = hasError && !CoordinateUtils.validateLatitude(latitude)
                 )
 
                 TextField(
                     value = longitude,
-                    onValueChange = { longitude = it },
+                    onValueChange = {
+                        longitude = it
+                        hasError = !CoordinateUtils.validateLongitude(it) && it.isNotBlank()
+                        if (hasError) errorMessage = "Longitude må være mellom -180 og 180"
+                    },
                     label = { Text("Longitude") },
                     modifier = Modifier.fillMaxWidth(),
-                    isError = hasError && (longitude.toDoubleOrNull() == null)
+                    isError = hasError && !CoordinateUtils.validateLongitude(longitude)
                 )
 
                 if (hasError) {
                     Text(
-                        text = "Alle felt må fylles ut korrekt",
+                        text = errorMessage.ifEmpty { "Alle felt må fylles ut korrekt" },
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall
                     )
@@ -207,8 +229,11 @@ fun EditLaunchSiteDialog(
                 ) {
                     Button(
                         onClick = {
-                            if (name.isBlank() || latitude.toDoubleOrNull() == null || longitude.toDoubleOrNull() == null) {
+                            if (name.isBlank() ||
+                                !CoordinateUtils.validateLatitude(latitude) ||
+                                !CoordinateUtils.validateLongitude(longitude)) {
                                 hasError = true
+                                errorMessage = "Alle felt må fylles ut korrekt"
                                 return@Button
                             }
 
