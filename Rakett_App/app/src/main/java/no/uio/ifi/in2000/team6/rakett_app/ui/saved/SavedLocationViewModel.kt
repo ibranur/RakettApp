@@ -13,10 +13,7 @@ import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPoint
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPointEvent
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPointState
 
-/**
- * ViewModel for lagrede oppskytningssteder.
- * Håndterer forretningslogikk og tilstandsoppdateringer.
- */
+
 class SavedLocationViewModel(
     private val repository: LaunchPointRepositoryInterface
 ) : ViewModel() {
@@ -31,9 +28,6 @@ class SavedLocationViewModel(
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), LaunchPointState())
 
-    /**
-     * Håndterer hendelser fra brukergrensesnittet.
-     */
     fun onEvent(event: LaunchPointEvent) {
         when (event) {
             // Håndterer sletting av oppskytningspunkt

@@ -14,10 +14,6 @@ import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPointState
 import no.uio.ifi.in2000.team6.rakett_app.ui.cards.AltitudeWeatherSection
 import no.uio.ifi.in2000.team6.rakett_app.ui.cards.ExpandableCard
 
-/**
- * Hovedskjermen som viser værdata for valgt oppskytningssted og
- * lar brukeren administrere oppskytningssteder.
- */
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
@@ -49,7 +45,6 @@ fun HomeScreen(
     val isLoadingGrib by gribViewModel.isLoading.collectAsState()
     val errorMessage by gribViewModel.errorMessage.collectAsState()
 
-    // Main LazyColumn to prevent excessive white space
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 0.dp) // No bottom padding
@@ -100,7 +95,6 @@ fun HomeScreen(
                 }
             }
         } else {
-            // Display each card with a unique key to ensure independent state
             itemsIndexed(
                 items = fourHourUIState.list.filterNotNull(),
                 key = { index, item -> "forecast-${item.hour}-$index" }
@@ -110,7 +104,6 @@ fun HomeScreen(
             }
         }
 
-        // Høydevind-seksjon
         item {
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -123,7 +116,6 @@ fun HomeScreen(
                 title = "Værdata i høyden nå"
             )
 
-            // No additional space at the bottom
         }
     }
 

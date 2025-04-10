@@ -27,12 +27,6 @@ import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPoint
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPointEvent
 import no.uio.ifi.in2000.team6.rakett_app.utils.CoordinateUtils
 
-/**
- * Dialog for å legge til et nytt oppskytningssted.
- *
- * @param onEvent Håndterer hendelser knyttet til oppskytningssteder
- * @param onDismiss Kalles når brukeren lukker dialogen
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddLaunchSiteDialog(
@@ -139,13 +133,7 @@ fun AddLaunchSiteDialog(
     }
 }
 
-/**
- * Dialog for å redigere et eksisterende oppskytningssted.
- *
- * @param launchPoint Oppskytningsstedet som skal redigeres
- * @param onEvent Håndterer hendelser knyttet til oppskytningssteder
- * @param onDismiss Kalles når brukeren lukker dialogen
- */
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditLaunchSiteDialog(

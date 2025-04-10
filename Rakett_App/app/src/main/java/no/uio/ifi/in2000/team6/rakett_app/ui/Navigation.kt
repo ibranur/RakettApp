@@ -39,12 +39,7 @@ sealed class Screen(val route: String, val label: String) {
     data object Saved : Screen("saved", "Lagret")
 }
 
-/**
- * Hovednavigasjonen for appen som håndterer navigasjon mellom ulike skjermer.
- *
- * @param state LaunchPointState som inneholder data om alle oppskytningssteder
- * @param onEvent Funksjon for å håndtere hendelser relatert til oppskytningssteder
- */
+
 @Composable
 fun Navigation(
     state: LaunchPointState,
@@ -105,11 +100,6 @@ fun Navigation(
     }
 }
 
-/**
- * Bunnnavigeringsfelt som viser navigasjonsalternativer.
- *
- * @param navController NavController for å håndtere navigasjon mellom skjermer
- */
 @Composable
 fun BottomNavigationBar(navController: NavController) {
     val items = listOf(

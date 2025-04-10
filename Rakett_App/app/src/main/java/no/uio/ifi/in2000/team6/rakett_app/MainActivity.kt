@@ -16,10 +16,7 @@ import no.uio.ifi.in2000.team6.rakett_app.ui.Navigation
 import no.uio.ifi.in2000.team6.rakett_app.ui.saved.SavedLocationViewModel
 import no.uio.ifi.in2000.team6.rakett_app.ui.theme.Rakett_AppTheme
 
-/**
- * Hovedaktiviteten som initialiserer appen, setter opp databasen og
- * håndterer NavigationViewModel for navigasjon.
- */
+
 class MainActivity : ComponentActivity() {
 
     // Initialiserer databasen ved første tilgang

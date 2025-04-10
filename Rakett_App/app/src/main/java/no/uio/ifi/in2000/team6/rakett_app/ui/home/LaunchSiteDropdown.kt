@@ -35,9 +35,6 @@ import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPoint
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPointEvent
 import no.uio.ifi.in2000.team6.rakett_app.model.LocationSaving.LaunchPointState
 
-/**
- * En dropdown-meny for å velge, administrere og legge til oppskytningssteder.
- */
 @Composable
 fun LaunchSiteDropdown(
     state: LaunchPointState,
@@ -47,10 +44,9 @@ fun LaunchSiteDropdown(
 ) {
     var expanded by remember { mutableStateOf(false) }
     val selectedPoint = state.launchPoints.find { it.selected }
-    val locationTextSize = 16.sp  // Slightly smaller text size for all items
-    val itemHeight = 48.dp  // Fixed height for all dropdown items
+    val locationTextSize = 16.sp
+    val itemHeight = 48.dp
 
-    // This box will hold the card and ensure the dropdown is properly aligned
     Box(modifier = Modifier.fillMaxWidth()) {
         ElevatedCard(
             modifier = Modifier.fillMaxWidth(),
@@ -85,7 +81,6 @@ fun LaunchSiteDropdown(
             }
         }
 
-        // Dropdown-menyen - aligned with the card above
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
@@ -133,7 +128,6 @@ fun LaunchSiteDropdown(
                                         .padding(horizontal = 8.dp)
                                 )
 
-                                // Using the same Icon consistently for all locations
                                 Icon(
                                     Icons.Default.Delete,
                                     contentDescription = "Slett",
@@ -148,23 +142,21 @@ fun LaunchSiteDropdown(
                         }
                     )
 
-                    // Add divider after each item except the last one
                     if (index < state.launchPoints.size - 1) {
                         HorizontalDivider()
                     }
                 }
             }
 
-            // Divider before Add button
             HorizontalDivider()
 
-            // Legg til nytt oppskytningssted - moved to bottom
+            // Legg til nytt oppskytningssted
             DropdownMenuItem(
                 modifier = Modifier.height(itemHeight),
                 text = {
                     Text(
                         "Legg til lokasjon",
-                        fontSize = locationTextSize  // Same size as location text
+                        fontSize = locationTextSize
                     )
                 },
                 leadingIcon = {

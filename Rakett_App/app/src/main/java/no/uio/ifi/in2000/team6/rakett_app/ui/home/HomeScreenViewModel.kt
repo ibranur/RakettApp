@@ -13,9 +13,6 @@ import no.uio.ifi.in2000.team6.rakett_app.data.repository.LocationForecastReposi
 import no.uio.ifi.in2000.team6.rakett_app.data.CoordinatesManager
 import no.uio.ifi.in2000.team6.rakett_app.model.frontendForecast.FourHourUIState
 
-/**
- * ViewModel for hjemmeskjermen som håndterer værdata og koordinater.
- */
 class HomeScreenViewModel(
 ) : ViewModel() {
     // Vi bruker LocationForecastRepository direkte
@@ -25,11 +22,6 @@ class HomeScreenViewModel(
     private val _fourHourUIState = MutableStateFlow(FourHourUIState())
     val fourHourUIState = _fourHourUIState.asStateFlow()
 
-    /**
-     * Oppdaterer det valgte oppskytningsstedet basert på state og henter værdata.
-     *
-     * @param state LaunchPointState som inneholder alle oppskytningssteder
-     */
     fun updateSelectedLocation(state: LaunchPointState) {
         viewModelScope.launch(Dispatchers.IO) {
             // Oppdater koordinatene for valgt oppskytningssted
@@ -42,12 +34,6 @@ class HomeScreenViewModel(
         }
     }
 
-    /**
-     * Henter værmelding for de neste fire timene for gitte koordinater.
-     *
-     * @param latitude Breddegrad
-     * @param longitude Lengdegrad
-     */
     fun getFourHourForecast(latitude: Double, longitude: Double) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
